@@ -1,20 +1,20 @@
 ---
 lab:
-  title: Azure AI 拡張機能を探索する
+  title: Azure AI 拡張機能について調べる
   module: Explore Generative AI with Azure Database for PostgreSQL
 ---
 
-# Azure AI 拡張機能を探索する
+# Azure AI 拡張機能について調べる
 
-Margie's Travel のリード開発者として、顧客に賃貸物件に関するインテリジェントな推奨事項を提供する AI 搭載アプリケーションをビルドする作業を行っています。 Azure Database for PostgreSQL の `azure_ai` 拡張機能の詳細と、それが生成 AI (GenAI) の機能をアプリに統合するのにどのように役立つかについて知りたいと考えています。 この演習では、`azure_ai` 拡張機能を Azure Database for PostgreSQL フレキシブル サーバー データベースにインストールし、Azure AI と ML サービスを統合する機能を調べることで、その拡張機能を確認します。
+Margie's Travel のリード開発者として、あなたは、賃貸物件に関するインテリジェントなレコメンデーションを顧客に提供する AI 搭載アプリケーションの構築を任されています。 Azure Database for PostgreSQL の `azure_ai` 拡張機能の詳細と、それが生成 AI (GenAI) の機能をアプリに統合するのにどのように役立つかについて知りたいと考えています。 この演習では、`azure_ai` 拡張機能を Azure Database for PostgreSQL フレキシブル サーバー データベースにインストールし、Azure AI と ML サービスを統合する機能を調べることで、その拡張機能を確認します。
 
 ## 開始する前に
 
-管理者権限を持つ [Azure サブスクリプション](https://azure.microsoft.com/free)が必要であり、そのサブスクリプションで Azure OpenAI アクセスが承認されている必要があります。 Azure OpenAI アクセスが必要な場合、[Azure OpenAI の制限付きアクセス](https://learn.microsoft.com/legal/cognitive-services/openai/limited-access)に関するページで申請してください。
+管理者権限のある [Azure サブスクリプション](https://azure.microsoft.com/free)が必要です。
 
 ### Azure サブスクリプションにリソースをデプロイする
 
-この手順では、Azure Cloud Shell の Azure CLI コマンドにより、リソース グループを作成し、Bicep スクリプトを実行して、この演習を完了するのに必要な Azure サービスを Azure サブスクリプションにデプロイします。
+このステップ ガイドでは、Azure Cloud Shell の Azure CLI コマンドにより、リソース グループを作成し、Bicep スクリプトを実行して、この演習を完了するのに必要な Azure サービスを Azure サブスクリプションにデプロイします。
 
 1. Web ブラウザーを開いて [Azure portal](https://portal.azure.com/) に移動します。
 
@@ -24,40 +24,40 @@ Margie's Travel のリード開発者として、顧客に賃貸物件に関す�
 
     メッセージが表示されたら、必要なオプションを選択して *Bash* シェルを開きます。 以前に *PowerShell* コンソールを使用している場合は、*Bash* シェルに切り替えます。
 
-3. Cloud Shell プロンプトで、次のように入力して、演習リソースを含む GitHub リポジトリを複製します。
+3. Cloud Shell プロンプトで、次のように入力して、演習リソースを含んだ GitHub リポジトリをクローンします。
 
     ```bash
     git clone https://github.com/MicrosoftLearning/mslearn-postgresql.git
     ```
 
-4. 次に、Azure CLI コマンドを使用して Azure リソースを作成するときに、冗長な型指定を減らすための変数を定義する 3 つのコマンドを実行します。 この変数は、リソース グループに割り当てる名前 (`RG_NAME`)、リソースがデプロイされる Azure リージョン (`REGION`)、PostgreSQL 管理者ログイン用にランダムに生成されたパスワード (`ADMIN_PASSWORD`) を表します。
+4. 次に、3 つのコマンドを実行して、Azure CLI コマンドを使用して Azure リソースを作成するときに冗長な入力を減らすための変数を定義します。 これらの変数は、リソース グループに割り当てる名前 (`RG_NAME`)、リソースがデプロイされる Azure リージョン (`REGION`)、PostgreSQL 管理者ログイン用にランダムに生成されたパスワード (`ADMIN_PASSWORD`) を表します。
 
-    最初のコマンドで、対応する変数に割り当てられるリージョンは `eastus` ですが、任意の場所に置き換えることもできます。 ただし、既定値を置き換える場合は、このラーニング パスのモジュール内のすべてのタスクを完了できるように、[抽象的な要約をサポートしている別の Azure リージョン](https://learn.microsoft.com/azure/ai-services/language-service/summarization/region-support)を選択する必要があります。
+    最初のコマンドでは、対応する変数に割り当てられるリージョンは `eastus` ですが、任意の場所に置き換えることもできます。 ただし、既定値を置き換える場合は、このラーニング パスのモジュール内のすべてのタスクを完了できるように、[抽象要約をサポートしている別の Azure リージョン](https://learn.microsoft.com/azure/ai-services/language-service/summarization/region-support)を選択する必要があります。
 
     ```bash
     REGION=eastus
     ```
 
-    次のコマンドで、この演習で使用されるすべてのリソースを格納するリソース グループに使用する名前が割り当てられます。 対応する変数に割り当てられたリソース グループ名は `rg-learn-postgresql-ai-$REGION` で、その中の `$REGION` は上で指定した場所です。 ただし、この部分は好みに合わせて他のリソース グループ名に変更できます。
+    次のコマンドでは、この演習で使用されるすべてのリソースを格納するリソース グループに使用する名前が割り当てられます。 対応する変数に割り当てられたリソース グループ名は `rg-learn-postgresql-ai-$REGION` で、その中の `$REGION` は上で指定した場所です。 ただし、この部分は好みに合わせて他のリソース グループ名に変更できます。
 
     ```bash
     RG_NAME=rg-learn-postgresql-ai-$REGION
     ```
 
-    最後のコマンドでは、PostgreSQL 管理者ログイン用のパスワードがランダムに生成されます。 後で PostgreSQL フレキシブル サーバーに接続するときに使用するために、このパスワードを安全な場所にコピーしてください。
+    最後のコマンドでは、PostgreSQL 管理者ログイン用のパスワードがランダムに生成されます。 後で PostgreSQL フレキシブル サーバーに接続するときに使用するために、このパスワードを安全な場所にコピーします。
 
     ```bash
     a=()
-    for i in {a..z} {A..Z} {0..9}; 
+    for i in {a..z} {A..Z} {0..9};
         do
-        a[$RANDOM]=$i
-    done
+        a[$RANDOM]=$i
+        done
     ADMIN_PASSWORD=$(IFS=; echo "${a[*]::18}")
     echo "Your randomly generated PostgreSQL admin user's password is:"
     echo $ADMIN_PASSWORD
     ```
 
-5. 複数の Azure サブスクリプションにアクセスでき、既定のサブスクリプションがこの演習でリソース グループとその他のリソースを作成するものでない場合は、次のコマンドを実行して適切なサブスクリプションを設定し、`<subscriptionName|subscriptionId>` トークンを使用するサブスクリプションの名前または ID に置き換えます。
+5. 複数の Azure サブスクリプションにアクセスでき、この演習のリソース グループやその他のリソースを作成するサブスクリプションが既定のサブスクリプションでない場合は、次のコマンドを実行して適切なサブスクリプションを設定し、`<subscriptionName|subscriptionId>` トークンを、使用するサブスクリプションの名前または ID に置き換えます。
 
     ```azurecli
     az account set --subscription <subscriptionName|subscriptionId>
@@ -69,15 +69,15 @@ Margie's Travel のリード開発者として、顧客に賃貸物件に関す�
     az group create --name $RG_NAME --location $REGION
     ```
 
-7. 最後に、Azure CLI を使用して Bicep デプロイ スクリプトを実行し、リソース グループ内の Azure リソースをプロビジョニングします。
+7. 最後に、Azure CLI を使用して Bicep デプロイ スクリプトを実行し、リソース グループに Azure リソースをプロビジョニングします。
 
     ```azurecli
     az deployment group create --resource-group $RG_NAME --template-file "mslearn-postgresql/Allfiles/Labs/Shared/deploy.bicep" --parameters restore=false adminLogin=pgAdmin adminLoginPassword=$ADMIN_PASSWORD
     ```
 
-    Bicep デプロイ スクリプトでは、この演習を完了するのに必要な Azure サービスがリソース グループにプロビジョニングされます。 デプロイされるリソースは、Azure Database for PostgreSQL フレキシブル サーバー、Azure OpenAI、Azure AI 言語サービスなどです。 また、Bicep スクリプトでは、PostgreSQL サーバーの_許可リスト_に `azure_ai` 拡張機能や `vector` 拡張機能を追加する (azure.extensions サーバー パラメーターを使用)、サーバーに `rentals` という名前のデータベースを作成する、`text-embedding-ada-002` モデルを使用して `embedding` という名前のデプロイを Azure OpenAI サービスに追加するなど、いくつかの構成手順も実行されます。 なお、Bicep ファイルは、このラーニング パス内のすべてのモジュールで共有されるため、一部の演習ではデプロイされたリソースの一部のみを使用できます。
+    Bicep デプロイ スクリプトでは、この演習を完了するのに必要な Azure サービスがリソース グループにプロビジョニングされます。 デプロイされるリソースは、Azure Database for PostgreSQL フレキシブル サーバー、Azure OpenAI、Azure AI Language サービスなどです。 また、Bicep スクリプトでは、(azure.extensions サーバー パラメーターを使用して) PostgreSQL サーバーの_許可リスト_に `azure_ai` 拡張機能や `vector` 拡張機能を追加する、サーバーに `rentals` という名前のデータベースを作成する、`text-embedding-ada-002` モデルを使用して `embedding` という名前のデプロイを Azure OpenAI サービスに追加するといった、いくつかの構成手順も実行されます。 なお、Bicep ファイルは、このラーニング パス内のすべてのモジュールで共有されるため、一部の演習ではデプロイされたリソースの一部のみを使用できます。
 
-    デプロイが完了するまでに通常数分かかります。 Cloud Shell から監視するか、上で作成したリソース グループの **[デプロイ]** ページに移動し、そこでデプロイの進行状況を確認することができます。
+    デプロイが完了するまでに通常は数分かかります。 Cloud Shell から監視するか、上記で作成したリソース グループの **[デプロイ]** ページに移動し、そこでデプロイの進行状況を確認することができます。
 
  8. リソースのデプロイが完了したら、Cloud Shell 画面を閉じます。
  
@@ -85,7 +85,7 @@ Margie's Travel のリード開発者として、顧客に賃貸物件に関す�
 
 Bicep デプロイ スクリプトを実行すると、いくつかエラーが発生する場合があります。
 
-- 以前にこのラーニング パスで Bicep デプロイ スクリプトを実行してその後リソースを削除した場合、リソースを削除してから 48 時間以内にスクリプトをまた実行しようとすると、次のようなエラー メッセージが表示される場合があります。
+- 以前にこのラーニング パスで Bicep デプロイ スクリプトを実行し、その後でリソースを削除した場合、リソースを削除してから 48 時間以内にスクリプトをまた実行しようとすると、次のようなエラー メッセージが表示される場合があります。
 
     ```bash
     {"code": "InvalidTemplateDeployment", "message": "The template deployment 'deploy' is not valid according to the validation procedure. The tracking id is '4e87a33d-a0ac-4aec-88d8-177b04c1d752'. See inner errors for details."}
@@ -117,7 +117,7 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
 
 1. [Azure portal](https://portal.azure.com/) で、新しく作成した Azure Database for PostgreSQL フレキシブル サーバーに移動します。
 
-2. リソース メニューの **[設定]** で **[データベース]** を選択し、`rentals` データベースの **[接続]** を選択します。
+2. リソース メニューの **[設定]** で、**[データベース]** を選択し、`rentals` データベースの **[接続]** を選択します。
 
     ![Azure Database for PostgreSQL の [データベース] ページのスクリーンショット。 [データベース] と rentals データベースの [接続] が赤い四角で強調表示されています。](media/12-postgresql-rentals-database-connect.png)
 
@@ -125,11 +125,11 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
 
     ログインすると、`rentals` データベースの `psql` プロンプトが表示されます。
 
-4. この演習の残りの部分は Cloud Shell で作業を続けるため、ペインの右上にある **[最大化]** ボタンを選択して、ブラウザー画面内にペインを展開すると便利な場合があります。
+4. この演習の残りの部分は Cloud Shell で作業を続けるので、ペインの右上にある **[最大化]** ボタンを選択して、ブラウザー画面内にペインを広げると便利な場合があります。
 
     ![[最大化] ボタンが赤い四角で強調表示されている Azure Cloud Shell 画面のスクリーンショット。](media/12-azure-cloud-shell-pane-maximize.png)
 
-## データベースにサンプル データを設定する
+## データベースにサンプル データを入力する
 
 `azure_ai` 拡張機能を調べる前に、機能を確認するときに扱う情報が得られるように、`rentals` データベースにテーブルをいくつか追加し、それらにサンプル データを入力します。
 
@@ -176,17 +176,17 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
 
     コマンドの出力は `COPY 354` となるはずです。これは、CSV ファイルから 354 行がテーブルに書き込まれたことを示しています。
 
-## `azure_ai` 拡張機能のインストールと構成
+## `azure_ai` 拡張機能をインストールし構成する
 
-`azure_ai` 拡張機能を使用する前に、それをデータベースにインストールし、Azure AI サービス リソースに接続するように構成する必要があります。 `azure_ai` 拡張機能を使用すると、Azure OpenAI および Azure AI Language サービスをデータベースに統合できます。 データベースで拡張機能を有効にするには、次の手順に従います。
+`azure_ai` 拡張機能を使用する前に、それをデータベースにインストールし、Azure AI サービス リソースに接続するように構成する必要があります。 `azure_ai` 拡張機能を使用すると、Azure OpenAI サービスと Azure AI Language サービスをデータベースに統合できます。 データベースで拡張機能を有効にするには、次の手順に従います。
 
-1. `psql` プロンプトで次のコマンドを実行して、環境のセットアップ時に実行した Bicep 配置スクリプトによって `azure_ai` および `vector` 拡張機能がサーバーの_許可リスト_に正常に追加されたことを確認します。
+1. `psql` プロンプトで次のコマンドを実行して、環境のセットアップ時に実行した Bicep デプロイ スクリプトによって `azure_ai` および `vector` 拡張機能がサーバーの_許可リスト_に正常に追加されたことを確認します。
 
     ```sql
     SHOW azure.extensions;
     ```
 
-    このコマンドは、サーバーの_許可リスト_上の拡張機能の一覧を表示します。 すべてが正しくインストールされている場合、出力には次のように `azure_ai` と `vector` が含まれるはずです。
+    このコマンドは、サーバーの_許可リスト_に含まれている拡張機能の一覧を表示します。 すべてが正しくインストールされている場合、出力には次のように `azure_ai` と `vector` が含まれているはずです。
 
     ```sql
      azure.extensions 
@@ -233,7 +233,7 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
 
 `azure_ai` スキーマは、データベースから Azure AI サービスおよび ML サービスを直接操作するためのフレームワークを提供します。 これには、これらのサービスへの接続を設定し、同じスキーマでホストされている `settings` テーブルからそれらを取得するための関数が含まれています。 `settings` テーブルは、Azure AI サービスおよび ML サービスに関連付けられているエンドポイントとキー用の、データベース内の安全なストレージとなります。
 
-1. スキーマで定義されている関数を確認するには、[`\df` メタ コマンド](https://www.postgresql.org/docs/current/app-psql.html#APP-PSQL-META-COMMAND-DF-LC)を使用して、関数を表示するスキーマを指定できます。 以下を実行すると、`azure_ai` スキーマ内の関数が表示されます。
+1. スキーマで定義されている関数を確認するには、[`\df` メタ コマンド](https://www.postgresql.org/docs/current/app-psql.html#APP-PSQL-META-COMMAND-DF-LC)を使用して、関数を表示するスキーマを指定します。 以下を実行すると、`azure_ai` スキーマ内の関数が表示されます。
 
     ```sql
     \df azure_ai.*
@@ -254,16 +254,16 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
 
     | Key | 説明 |
     | --- | ----------- |
-    | `azure_openai.endpoint` | サポートされている OpenAI エンドポイント (例: <https://example.openai.azure.com>)。 |
+    | `azure_openai.endpoint` | サポートされている OpenAI エンドポイント (<https://example.openai.azure.com> など)。 |
     | `azure_openai.subscription_key` | Azure OpenAI リソースのサブスクリプション キー。 |
-    | `azure_cognitive.endpoint` | サポートされている Azure AI サービス エンドポイント (例: <https://example.cognitiveservices.azure.com>)。 |
+    | `azure_cognitive.endpoint` | サポートされている Azure AI サービス エンドポイント (<https://example.cognitiveservices.azure.com> など)。 |
     | `azure_cognitive.subscription_key` | Azure AI サービス リソースのサブスクリプション キー。 |
-    | `azure_ml.scoring_endpoint` | サポートされている Azure ML スコアリング エンドポイント (例: <https://example.eastus2.inference.ml.azure.com/score>) |
+    | `azure_ml.scoring_endpoint` | サポートされている Azure ML スコアリング エンドポイント (<https://example.eastus2.inference.ml.azure.com/score> など) |
     | `azure_ml.endpoint_key` | Azure ML デプロイのエンドポイント キー。 |
 
     > 重要
     >
-    > API キーを含む Azure AI サービスの接続情報はデータベースの構成テーブルに格納されるため、`azure_ai` 拡張機能で `azure_ai_settings_manager` というロールが定義されることで、この情報が保護され、そのロールが割り当てられたユーザーのみがアクセスできるようになります。 このロールを使用すると、拡張機能に関連する設定の読み取りと書き込みを行えるようになります。 `azure_ai.get_setting()` および `azure_ai.set_setting()` 関数を呼び出すことができるのは、`azure_ai_settings_manager` ロールのメンバーだけです。 Azure Database for PostgreSQL フレキシブル サーバーでは、すべての管理者ユーザー (`azure_pg_admin` ロールが割り当てられたユーザー) に `azure_ai_settings_manager` ロールが割り当てられます。
+    > Azure AI サービスの接続情報 (API キーなど) はデータベースの構成テーブルに格納されるので、`azure_ai` 拡張機能で `azure_ai_settings_manager` というロールが定義されることで、この情報が保護され、そのロールが割り当てられたユーザーのみがアクセスできるようになります。 このロールを使用すると、拡張機能に関連する設定の読み取りと書き込みを行えるようになります。 `azure_ai.get_setting()` および `azure_ai.set_setting()` 関数を呼び出すことができるのは、`azure_ai_settings_manager` ロールのメンバーだけです。 Azure Database for PostgreSQL フレキシブル サーバーでは、すべての管理者ユーザー (`azure_pg_admin` ロールが割り当てられたユーザー) に `azure_ai_settings_manager` ロールが割り当てられます。
 
 2. `azure_ai.set_setting()` 関数と `azure_ai.get_setting()` 関数の使用方法を示すには、Azure OpenAI アカウントへの接続を構成します。 Cloud Shell が開いているのと同じブラウザー タブを使用して、Cloud Shell 画面を最小化または復元し、[Azure portal](https://portal.azure.com/) で Azure OpenAI リソースに移動します。 Azure OpenAI リソース ページに移動したら、リソース メニューの **[リソース管理]** セクションで **[キーとエンドポイント]** を選択し、エンドポイントと使用可能なキーの 1 つをコピーします。
 
@@ -288,37 +288,37 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
     SELECT azure_ai.get_setting('azure_openai.subscription_key');
     ```
 
-    `azure_ai` 拡張機能は現在 Azure OpenAI アカウントに接続されています。
+    これで、`azure_ai` 拡張機能が Azure OpenAI アカウントに接続されました。
 
 ### Azure OpenAI スキーマを確認する
 
-`azure_openai` スキーマは、Azure OpenAI を使用して、テキスト値のベクター埋め込みの作成をデータベースに統合する機能を提供します。 このスキーマを使用すると、データベースから直接 [Azure OpenAI で埋め込みを生成](https://learn.microsoft.com/azure/ai-services/openai/how-to/embeddings)して、入力テキストのベクター表現を作成できます。作成したベクター表現は、ベクター類似性検索に使用でき、機械学習モデルで使用することもできます。 このスキーマには、オーバーロードが 2 つある 1 つの関数 `create_embeddings()` が含まれています。 1 つのオーバーロードは 1 つの入力文字列を受け取り、もう 1 つは入力文字列の配列を要求します。
+`azure_openai` スキーマは、Azure OpenAI を使用して、テキスト値のベクター埋め込みの作成をデータベースに統合する機能を提供します。 このスキーマを使用すると、データベースから直接 [Azure OpenAI で埋め込みを生成](https://learn.microsoft.com/azure/ai-services/openai/how-to/embeddings)して、入力テキストのベクター表現を作成できます。作成したベクター表現は、ベクター類似性検索に使用でき、機械学習モデルで使用することもできます。 このスキーマには、オーバーロードが 2 つある 1 つの関数 `create_embeddings()` が含まれています。 一方のオーバーロードは 1 つの入力文字列を受け取り、もう一方は入力文字列の配列を受け取ります。
 
-1. 上で行ったように、[`\df` meta-command](https://www.postgresql.org/docs/current/app-psql.html#APP-PSQL-META-COMMAND-DF-LC) を使用して、`azure_openai` スキーマ内の関数の詳細を表示できます。
+1. 前述のように、[`\df` メタコマンド](https://www.postgresql.org/docs/current/app-psql.html#APP-PSQL-META-COMMAND-DF-LC)を使用して、`azure_openai` スキーマ内の関数の詳細を表示できます。
 
     ```sql
     \df azure_openai.*
     ```
 
-    出力には `azure_openai.create_embeddings()` 関数の 2 つのオーバーロードが表示され、関数の 2 つのバージョンと返される型の違いを確認できます。 出力の `Argument data types` プロパティにより、関数の 2 つのオーバーロードが要求する引数の一覧が表示されます。
+    出力には `azure_openai.create_embeddings()` 関数の 2 つのオーバーロードが表示され、関数の 2 つのバージョンと返される型の違いを確認できます。 出力の `Argument data types` プロパティにより、関数の 2 つのオーバーロードが想定する引数の一覧が表示されます。
 
     | 引数    | 型       | Default | 説明                                                          |
     | --------------- | ------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------ |
-    | deployment_name | `text`      |    | `text-embedding-ada-002` モデルを含む Azure OpenAI Studio でのデプロイの名前。               |
+    | deployment_name | `text`      |    | `text-embedding-ada-002` モデルを含んだ Azure OpenAI Studio でのデプロイの名前。               |
     | input     | `text` または `text[]` |    | 埋め込みを作成する入力テキスト (またはテキストの配列)。                                |
-    | batch_size   | `integer`     | 100  | `text[]` の入力を要求するオーバーロード専用。 一度に処理するレコードの数を指定します。          |
+    | batch_size   | `integer`     | 100  | `text[]` の入力を想定するオーバーロード専用。 一度に処理するレコードの数を指定します。          |
     | timeout_ms   | `integer`     | 3600000 | 操作が停止するまでのタイムアウト時間 (ミリ秒単位)。                                 |
     | throw_on_error | `boolean`     | true  | 関数がエラー時に例外をスローしてトランザクションをラップするロールバックを行うかどうかを示すフラグ。 |
     | max_attempts  | `integer`     | 1   | エラー発生時の Azure OpenAI サービスへの呼び出しの再試行回数。                     |
     | retry_delay_ms | `integer`     | 1000  | Azure OpenAI サービス エンドポイントの呼び出しを再試行する前の待機時間 (ミリ秒単位)。        |
 
-2. 関数のシンプルな使用例を提供するには、次のクエリを実行します。このクエリでは、`listings` テーブルの `description` フィールドに対するベクター埋め込みを作成します。 関数の `deployment_name` パラメーターは `embedding` に設定されます。これは、Azure OpenAI サービスでの `text-embedding-ada-002` モデルのデプロイの名前です (Bicep デプロイ スクリプトによってその名前で作成されました)。
+2. この関数のシンプルな使用例を示すには、次のクエリを実行します。このクエリでは、`listings` テーブルの `description` フィールドに対するベクター埋め込みを作成します。 この関数の `deployment_name` パラメーターは `embedding` に設定されます。これは、Azure OpenAI サービスでの `text-embedding-ada-002` モデルのデプロイの名前です (Bicep デプロイ スクリプトによってその名前で作成されました)。
 
     ```sql
     SELECT
-      id,
-      name,
-      azure_openai.create_embeddings('embedding', description) AS vector
+        id,
+        name,
+        azure_openai.create_embeddings('embedding', description) AS vector
     FROM listings
     LIMIT 1;
     ```
@@ -333,27 +333,27 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
 
     簡潔にするために、上の出力ではベクター埋め込みを省略しています。
 
-    [埋め込み](https://learn.microsoft.com/azure/postgresql/flexible-server/generative-ai-overview#embeddings)は、機械学習と自然言語処理 (NLP) の概念で、単語、ドキュメント、エンティティなどのオブジェクトが多次元空間の[ベクトル](https://learn.microsoft.com/azure/postgresql/flexible-server/generative-ai-overview#vectors)として表現されます。 埋め込みにより、機械学習モデルで情報の 2 つの部分の関連性を評価できます。 この手法では、データ間の関連性と類似性を効率的に識別して、アルゴリズムでパターンを識別したり正確に予測したりすることができます。
+    [埋め込み](https://learn.microsoft.com/azure/postgresql/flexible-server/generative-ai-overview#embeddings)は、機械学習と自然言語処理 (NLP) の概念で、単語、ドキュメント、エンティティなどのオブジェクトが多次元空間の[ベクトル](https://learn.microsoft.com/azure/postgresql/flexible-server/generative-ai-overview#vectors)として表現されます。 埋め込みにより、機械学習モデルで 2 つの情報の関連性を評価できます。 この手法では、データ間の関連性や類似性を効率的に特定して、アルゴリズムでパターンを識別したり正確な予測をしたりすることができます。
 
     `azure_ai` 拡張機能を使用すると、入力テキストの埋め込みを生成できます。 生成されたベクトルをデータベース内の他のデータと共に格納できるようにするには、[データベースでベクトルのサポートを有効にする](https://learn.microsoft.com/azure/postgresql/flexible-server/how-to-use-pgvector#enable-extension)方法に関する記事のガイダンスに従って、`vector` 拡張機能をインストールする必要があります。 ただし、これはこの演習の範囲外です。
 
-### azure_cognitive スキーマを探索する
+### azure_cognitive スキーマを調べる
 
-`azure_cognitive` スキーマは、データベースから Azure AI サービスを直接操作するためのフレームワークを提供します。 このスキーマでの Azure AI サービス統合は、データベースから直接アクセスできる豊富な AI 言語機能のセットを提供します。 この機能には、感情分析、言語検出、キー フレーズ抽出、エンティティ認識、テキスト要約、翻訳が含まれます。 これらの機能は、[Azure AI Language サービス](https://learn.microsoft.com/azure/ai-services/language-service/overview)を通じて利用できます。
+`azure_cognitive` スキーマは、データベースから Azure AI サービスを直接操作するためのフレームワークを提供します。 このスキーマでの Azure AI サービス統合は、データベースから直接アクセスできる一連の豊富な AI 言語機能を提供します。 これらの機能には、感情分析、言語検出、キー フレーズ抽出、エンティティ認識、テキスト要約、翻訳が含まれます。 これらの機能は、[Azure AI Language サービス](https://learn.microsoft.com/azure/ai-services/language-service/overview)を通じて利用できます。
 
-1. スキーマで定義されているすべての関数を確認するには、前に行った [`\df` メタコマンド](https://www.postgresql.org/docs/current/app-psql.html#APP-PSQL-META-COMMAND-DF-LC)を使用できます。 `azure_cognitive` スキーマの関数を表示するには、次を実行します。
+1. スキーマで定義されているすべての関数を確認するには、前に行った [`\df` メタコマンド](https://www.postgresql.org/docs/current/app-psql.html#APP-PSQL-META-COMMAND-DF-LC)を使用できます。 `azure_cognitive` スキーマ内の関数を表示するには、以下を実行します。
 
     ```sql
     \df azure_cognitive.*
     ```
 
-2. このスキーマには多数の関数が定義されているため、[`\df` メタコマンド](https://www.postgresql.org/docs/current/app-psql.html#APP-PSQL-META-COMMAND-DF-LC)からの出力は読み取りが困難な場合があり、小さなチャンクに分割することをお勧めします。 次を実行して、`analyze_sentiment()` 関数のみを確認します。
+2. このスキーマには多数の関数が定義されているため、[`\df` メタコマンド](https://www.postgresql.org/docs/current/app-psql.html#APP-PSQL-META-COMMAND-DF-LC)からの出力は読み取りが困難な場合があり、小さなチャンクに分割することをお勧めします。 以下を実行して、`analyze_sentiment()` 関数のみを確認します。
 
     ```sql
     \df azure_cognitive.analyze_sentiment
     ```
 
-    出力で、関数に 3 つのオーバーロードがあり、1 つは 1 つの入力文字列を受け入れ、他の 2 つはテキストの配列を要求することを確認します。 出力には、関数のスキーマ、名前、結果のデータ型、および引数のデータ型が表示されます。 この情報は、関数の使用方法を理解するのに役立ちます。
+    この関数には 3 つのオーバーロードがあり、1 つは 1 つの入力文字列を受け取り、他の 2 つはテキストの配列を受け取ることを出力で確認します。 出力には、関数のスキーマ、名前、結果のデータ型、および引数のデータ型が表示されます。 この情報は、関数の使用方法を理解するのに役立ちます。
 
 3. `analyze_sentiment` 関数名を次の各関数名に置き換えて上記のコマンドを繰り返し、スキーマで使用可能なすべての関数を調べます。
 
@@ -366,21 +366,21 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
    - `summarize_extractive`
    - `translate`
 
-    各関数について、関数のさまざまな形式と、その想定されている入力と結果のデータ型を調べます。
+    各関数について、関数のさまざまな形式と、その想定される入力と結果のデータ型を調べます。
 
-4. `azure_cognitive` スキーマには、関数以外にも、さまざまな関数からの戻りデータ型として使用される複合型がいくつかあります。 クエリの出力を正しく処理できるように、関数が返すデータ型の構造を理解することが不可欠です。 例として、`sentiment_analysis_result` の型を調べるには次のコマンドを実行します。
+4. `azure_cognitive` スキーマには、関数以外にも、さまざまな関数からの戻り値のデータ型として使用される複合型がいくつか含まれています。 クエリの出力を正しく処理できるように、関数が返すデータ型の構造を理解することが不可欠です。 例として、`sentiment_analysis_result` 型を調べるには次のコマンドを実行します。
 
     ```sql
     \dT+ azure_cognitive.sentiment_analysis_result
     ```
 
-5. 上記のコマンドの出力により、`sentiment_analysis_result` の型が `tuple` であることがわかります。 次のコマンドを実行して `sentiment_analysis_result` の型に含まれる列を確認することで、その `tuple` の構造をさらに詳しく調べることができます。
+5. 上記のコマンドの出力により、`sentiment_analysis_result` 型が `tuple` であることがわかります。 次のコマンドを実行して `sentiment_analysis_result` 型に含まれる列を確認することで、その `tuple` の構造をさらに詳しく調べることができます。
 
     ```sql
     \d+ azure_cognitive.sentiment_analysis_result
     ```
 
-    そのコマンドの出力は次のようになるはずです。
+    そのコマンドの出力は次のようになります。
 
     ```sql
              Composite type "azure_cognitive.sentiment_analysis_result"
@@ -398,7 +398,7 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
 
     ![KEY 1 とエンドポイントのコピー ボタンが赤い四角で強調表示された、Azure Language サービスの [キーとエンドポイント] ページのスクリーンショットが表示されます。](media/12-azure-language-service-keys-and-endpoints.png)
 
-7. エンドポイントとアクセス キーの値をコピーし、`{endpoint}` トークンと `{api-key}` トークンを Azure portal からコピーした値に置き換えます。 Cloud Shell をもう一度最大化し、Cloud Shell の `psql` コマンド プロンプトからコマンドを実行して、構成テーブルに値を追加します。
+7. エンドポイントとアクセス キーの値をコピーし、`{endpoint}` トークンと `{api-key}` トークンを、Azure portal からコピーした値に置き換えます。 Cloud Shell をもう一度最大化し、Cloud Shell の `psql` コマンド プロンプトからコマンドを実行して、構成テーブルに値を追加します。
 
     ```sql
     SELECT azure_ai.set_setting('azure_cognitive.endpoint', '{endpoint}');
@@ -412,26 +412,26 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
 
     ```sql
     SELECT
-      id,
-      comments,
-      azure_cognitive.analyze_sentiment(comments, 'en') AS sentiment
+        id,
+        comments,
+        azure_cognitive.analyze_sentiment(comments, 'en') AS sentiment
     FROM reviews
     WHERE id IN (1, 3);
     ```
 
-    出力、`(mixed,0.71,0.09,0.2)`、および `(positive,0.99,0.01,0)` の `sentiment` 値を確認します。 これらは、上記のクエリで `analyze_sentiment()` 関数によって返される `sentiment_analysis_result` を表します。 分析は、`reviews` テーブルの `comments` フィールドに対して実行されました。
+    出力、`(mixed,0.71,0.09,0.2)`、および `(positive,0.99,0.01,0)` の `sentiment` 値を確認します。 これらは、上記のクエリで `analyze_sentiment()` 関数から返される `sentiment_analysis_result` を表します。 `reviews` テーブルの `comments` フィールドに対して分析が実行されました。
 
 ## Azure ML スキーマを調べる
 
-`azure_ml` スキーマを使用すると、関数はデータベースから直接 Azure ML サービスに接続できます。
+`azure_ml` スキーマを使用すると、関数がデータベースから直接 Azure ML サービスに接続できます。
 
-1. スキーマで定義されている関数を確認するには、[`\df` メタコマンド](https://www.postgresql.org/docs/current/app-psql.html#APP-PSQL-META-COMMAND-DF-LC)を使用できます。 `azure_ml` スキーマの関数を表示するには、次を実行します。
+1. スキーマで定義されている関数を確認するには、[`\df` メタコマンド](https://www.postgresql.org/docs/current/app-psql.html#APP-PSQL-META-COMMAND-DF-LC)を使用します。 `azure_ml` スキーマ内の関数を表示するには、以下を実行します。
 
     ```sql
     \df azure_ml.*
     ```
 
-    出力で、このスキーマに定義されている 2 つの関数 (`azure_ml.inference()` と `azure_ml.invoke()`) があることを確認します。詳細は次のとおりです。
+    このスキーマに 2 つの関数 (`azure_ml.inference()` と `azure_ml.invoke()`) が定義されていることを出力で確認します。詳細は次のとおりです。
 
     ```sql
                   List of functions
@@ -443,9 +443,9 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
     Type        | func
     ```
 
-    `inference()` 関数は、トレーニング済みの機械学習モデルを使用して、新しい未確認のデータに基づいて予測や出力生成を行うことができます。
+    `inference()` 関数は、トレーニング済みの機械学習モデルを使用して、新しい未確認のデータに基づいて予測や出力の生成を行います。
 
-    エンドポイントとキーを指定することで、Azure OpenAI エンドポイントや Azure AI サービス エンドポイントに接続した場合と同様に、Azure ML がデプロイされたエンドポイントに接続できます。 Azure ML を操作するにはトレーニング済みでデプロイ済みのモデルが必要であるため、この演習の範囲外であり、その接続を設定してここで試すことはしません。
+    エンドポイントとキーを指定することで、Azure OpenAI エンドポイントや Azure AI サービス エンドポイントに接続した場合と同様に、Azure ML がデプロイされたエンドポイントに接続できます。 Azure ML を操作するにはトレーニング済みでデプロイ済みのモデルが必要になるので、この演習の範囲外であり、その接続を設定してここで試すことはしません。
 
 ## クリーンアップ
 

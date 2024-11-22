@@ -6,15 +6,15 @@ lab:
 
 # センチメントを分析する
 
-Margie's Travel のために構築している AI 搭載アプリの一部として、特定の賃貸物件に対する、個々のレビューのセンチメントと、すべてのレビューの全体的なセンチメントに関する情報をユーザーに提供したいと考えています。 この達成のために、Azure Database for PostgreSQL フレキシブル サーバーで `azure_ai` 拡張機能を使用して、感情分析機能をデータベースに統合します。
+Margie's Travel のために構築している AI 搭載アプリの一部として、特定の賃貸物件に対する、個々のレビューのセンチメントと、すべてのレビューの全体的なセンチメントに関する情報をユーザーに提供したいと考えています。 これを達成するために、Azure Database for PostgreSQL フレキシブル サーバーの `azure_ai` 拡張機能を使用して、感情分析機能をデータベースに統合します。
 
 ## 開始する前に
 
-管理者権限を持つ [Azure サブスクリプション](https://azure.microsoft.com/free)が必要であり、そのサブスクリプションで Azure OpenAI アクセスが承認されている必要があります。 Azure OpenAI アクセスが必要な場合、[Azure OpenAI の制限付きアクセス](https://learn.microsoft.com/legal/cognitive-services/openai/limited-access)に関するページで申請してください。
+管理者権限のある [Azure サブスクリプション](https://azure.microsoft.com/free)が必要です。
 
 ### Azure サブスクリプションにリソースをデプロイする
 
-この手順では、Azure Cloud Shell の Azure CLI コマンドにより、リソース グループを作成し、Bicep スクリプトを実行して、この演習を完了するのに必要な Azure サービスを Azure サブスクリプションにデプロイします。
+このステップ ガイドでは、Azure Cloud Shell の Azure CLI コマンドにより、リソース グループを作成し、Bicep スクリプトを実行して、この演習を完了するのに必要な Azure サービスを Azure サブスクリプションにデプロイします。
 
 1. Web ブラウザーを開いて [Azure portal](https://portal.azure.com/) に移動します。
 
@@ -24,21 +24,21 @@ Margie's Travel のために構築している AI 搭載アプリの一部とし
 
     メッセージが表示されたら、必要なオプションを選択して *Bash* シェルを開きます。 以前に *PowerShell* コンソールを使用している場合は、*Bash* シェルに切り替えます。
 
-3. Cloud Shell プロンプトで、次のように入力して、演習リソースを含む GitHub リポジトリを複製します。
+3. Cloud Shell プロンプトで、次のように入力して、演習リソースを含んだ GitHub リポジトリをクローンします。
 
     ```bash
     git clone https://github.com/MicrosoftLearning/mslearn-postgresql.git
     ```
 
-4. 次に、Azure CLI コマンドを使用して Azure リソースを作成するときに、冗長な型指定を減らすための変数を定義する 3 つのコマンドを実行します。 この変数は、リソース グループに割り当てる名前 (`RG_NAME`)、リソースがデプロイされる Azure リージョン (`REGION`)、PostgreSQL 管理者ログイン用にランダムに生成されたパスワード (`ADMIN_PASSWORD`) を表します。
+4. 次に、3 つのコマンドを実行して、Azure CLI コマンドを使用して Azure リソースを作成するときに冗長な入力を減らすための変数を定義します。 これらの変数は、リソース グループに割り当てる名前 (`RG_NAME`)、リソースがデプロイされる Azure リージョン (`REGION`)、PostgreSQL 管理者ログイン用にランダムに生成されたパスワード (`ADMIN_PASSWORD`) を表します。
 
-    最初のコマンドで、対応する変数に割り当てられるリージョンは `eastus` ですが、任意の場所に置き換えることもできます。 ただし、既定値を置き換える場合は、このラーニング パスのモジュール内のすべてのタスクを完了できるように、[抽象的な要約をサポートしている別の Azure リージョン](https://learn.microsoft.com/azure/ai-services/language-service/summarization/region-support)を選択する必要があります。
+    最初のコマンドでは、対応する変数に割り当てられるリージョンは `eastus` ですが、任意の場所に置き換えることもできます。 ただし、既定値を置き換える場合は、このラーニング パスのモジュール内のすべてのタスクを完了できるように、[抽象要約をサポートしている別の Azure リージョン](https://learn.microsoft.com/azure/ai-services/language-service/summarization/region-support)を選択する必要があります。
 
     ```bash
     REGION=eastus
     ```
 
-    次のコマンドで、この演習で使用されるすべてのリソースを格納するリソース グループに使用する名前が割り当てられます。 対応する変数に割り当てられたリソース グループ名は `rg-learn-postgresql-ai-$REGION` で、その中の `$REGION` は上で指定した場所です。 ただし、この部分は好みに合わせて他のリソース グループ名に変更できます。
+    次のコマンドでは、この演習で使用されるすべてのリソースを格納するリソース グループに使用する名前が割り当てられます。 対応する変数に割り当てられたリソース グループ名は `rg-learn-postgresql-ai-$REGION` で、その中の `$REGION` は上で指定した場所です。 ただし、この部分は好みに合わせて他のリソース グループ名に変更できます。
 
     ```bash
     RG_NAME=rg-learn-postgresql-ai-$REGION
@@ -49,15 +49,15 @@ Margie's Travel のために構築している AI 搭載アプリの一部とし
     ```bash
     a=()
     for i in {a..z} {A..Z} {0..9}; 
-       do
-       a[$RANDOM]=$i
-    done
+        do
+        a[$RANDOM]=$i
+        done
     ADMIN_PASSWORD=$(IFS=; echo "${a[*]::18}")
     echo "Your randomly generated PostgreSQL admin user's password is:"
     echo $ADMIN_PASSWORD
     ```
 
-5. 複数の Azure サブスクリプションにアクセスでき、既定のサブスクリプションがこの演習でリソース グループとその他のリソースを作成するものでない場合は、次のコマンドを実行して適切なサブスクリプションを設定し、`<subscriptionName|subscriptionId>` トークンを使用するサブスクリプションの名前または ID に置き換えます。
+5. 複数の Azure サブスクリプションにアクセスでき、この演習のリソース グループやその他のリソースを作成するサブスクリプションが既定のサブスクリプションでない場合は、次のコマンドを実行して適切なサブスクリプションを設定し、`<subscriptionName|subscriptionId>` トークンを、使用するサブスクリプションの名前または ID に置き換えます。
 
     ```azurecli
     az account set --subscription <subscriptionName|subscriptionId>
@@ -69,15 +69,15 @@ Margie's Travel のために構築している AI 搭載アプリの一部とし
     az group create --name $RG_NAME --location $REGION
     ```
 
-7. 最後に、Azure CLI を使用して Bicep デプロイ スクリプトを実行し、リソース グループ内の Azure リソースをプロビジョニングします。
+7. 最後に、Azure CLI を使用して Bicep デプロイ スクリプトを実行し、リソース グループに Azure リソースをプロビジョニングします。
 
     ```azurecli
     az deployment group create --resource-group $RG_NAME --template-file "mslearn-postgresql/Allfiles/Labs/Shared/deploy.bicep" --parameters restore=false adminLogin=pgAdmin adminLoginPassword=$ADMIN_PASSWORD
     ```
 
-    Bicep デプロイ スクリプトでは、この演習を完了するのに必要な Azure サービスがリソース グループにプロビジョニングされます。 デプロイされるリソースは、Azure Database for PostgreSQL フレキシブル サーバー、Azure OpenAI、Azure AI Language サービスなどです。 また、Bicep スクリプトでは、PostgreSQL サーバーの_許可リスト_に `azure_ai` 拡張機能や `vector` 拡張機能を追加する (azure.extensions サーバー パラメーターを使用)、サーバーに `rentals` という名前のデータベースを作成する、`text-embedding-ada-002` モデルを使用して `embedding` という名前のデプロイを Azure OpenAI サービスに追加するなど、いくつかの構成手順も実行されます。 なお、Bicep ファイルは、このラーニング パス内のすべてのモジュールで共有されるため、一部の演習ではデプロイされたリソースの一部のみを使用できます。
+    Bicep デプロイ スクリプトでは、この演習を完了するのに必要な Azure サービスがリソース グループにプロビジョニングされます。 デプロイされるリソースは、Azure Database for PostgreSQL フレキシブル サーバー、Azure OpenAI、Azure AI Language サービスなどです。 また、Bicep スクリプトでは、(azure.extensions サーバー パラメーターを使用して) PostgreSQL サーバーの_許可リスト_に `azure_ai` 拡張機能や `vector` 拡張機能を追加する、サーバーに `rentals` という名前のデータベースを作成する、`text-embedding-ada-002` モデルを使用して `embedding` という名前のデプロイを Azure OpenAI サービスに追加するといった、いくつかの構成手順も実行されます。 なお、Bicep ファイルは、このラーニング パス内のすべてのモジュールで共有されるため、一部の演習ではデプロイされたリソースの一部のみを使用できます。
 
-    デプロイが完了するまでに通常数分かかります。 Cloud Shell から監視するか、上で作成したリソース グループの **[デプロイ]** ページに移動し、そこでデプロイの進行状況を確認することができます。
+    デプロイが完了するまでに通常は数分かかります。 Cloud Shell から監視するか、上記で作成したリソース グループの **[デプロイ]** ページに移動し、そこでデプロイの進行状況を確認することができます。
 
 8. リソースのデプロイが完了したら、Cloud Shell 画面を閉じます。
 
@@ -85,7 +85,7 @@ Margie's Travel のために構築している AI 搭載アプリの一部とし
 
 Bicep デプロイ スクリプトを実行すると、いくつかエラーが発生する場合があります。 最も一般的なメッセージとその解決手順は次のとおりです。
 
-- 以前にこのラーニング パスで Bicep デプロイ スクリプトを実行してその後リソースを削除した場合、リソースを削除してから 48 時間以内にスクリプトをまた実行しようとすると、次のようなエラー メッセージが表示される場合があります。
+- 以前にこのラーニング パスで Bicep デプロイ スクリプトを実行し、その後でリソースを削除した場合、リソースを削除してから 48 時間以内にスクリプトをまた実行しようとすると、次のようなエラー メッセージが表示される場合があります。
 
     ```bash
     {"code": "InvalidTemplateDeployment", "message": "The template deployment 'deploy' is not valid according to the validation procedure. The tracking id is '4e87a33d-a0ac-4aec-88d8-177b04c1d752'. See inner errors for details."}
@@ -117,7 +117,7 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
 
 1. [Azure portal](https://portal.azure.com/) で、新しく作成した Azure Database for PostgreSQL フレキシブル サーバー インスタンスに移動します。
 
-2. リソース メニューの **[設定]** で **[データベース]** を選択し、`rentals` データベースの **[接続]** を選択します。
+2. リソース メニューの **[設定]** で、**[データベース]** を選択し、`rentals` データベースの **[接続]** を選択します。
 
     ![Azure Database for PostgreSQL の [データベース] ページのスクリーンショット。 [データベース] と rentals データベースの [接続] が赤い四角で強調表示されています。](media/17-postgresql-rentals-database-connect.png)
 
@@ -150,17 +150,17 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
 
     コマンドの出力は `COPY 354` となるはずです。これは、CSV ファイルから 354 行がテーブルに書き込まれたことを示しています。
 
-## `azure_ai` 拡張機能のインストールと構成
+## `azure_ai` 拡張機能をインストールし構成する
 
-`azure_ai` 拡張機能を使用する前に、それをデータベースにインストールし、Azure AI サービス リソースに接続するように構成する必要があります。 `azure_ai` 拡張機能を使用すると、Azure OpenAI および Azure AI Language サービスをデータベースに統合できます。 データベースで拡張機能を有効にするには、次の手順に従います。
+`azure_ai` 拡張機能を使用する前に、それをデータベースにインストールし、Azure AI サービス リソースに接続するように構成する必要があります。 `azure_ai` 拡張機能を使用すると、Azure OpenAI サービスと Azure AI Language サービスをデータベースに統合できます。 データベースで拡張機能を有効にするには、次の手順に従います。
 
-1. `psql` プロンプトで次のコマンドを実行して、環境のセットアップ時に実行した Bicep 配置スクリプトによって `azure_ai` および `vector` 拡張機能がサーバーの_許可リスト_に正常に追加されたことを確認します。
+1. `psql` プロンプトで次のコマンドを実行して、環境のセットアップ時に実行した Bicep デプロイ スクリプトによって `azure_ai` および `vector` 拡張機能がサーバーの_許可リスト_に正常に追加されたことを確認します。
 
     ```sql
     SHOW azure.extensions;
     ```
 
-    このコマンドは、サーバーの_許可リスト_上の拡張機能の一覧を表示します。 すべてが正しくインストールされている場合、出力には次のように `azure_ai` と `vector` が含まれるはずです。
+    このコマンドは、サーバーの_許可リスト_に含まれている拡張機能の一覧を表示します。 すべてが正しくインストールされている場合、出力には次のように `azure_ai` と `vector` が含まれているはずです。
 
     ```sql
      azure.extensions 
@@ -186,11 +186,11 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
 
     ![KEY 1 とエンドポイントのコピー ボタンが赤い四角で強調表示された、Azure Language サービスの [キーとエンドポイント] ページのスクリーンショットが表示されます。](media/16-azure-language-service-keys-endpoints.png)
 
-    > [!Note]
-    >
-    > 上記の `azure_ai` 拡張機能のインストール時にメッセージ `NOTICE: extension "azure_ai" already exists, skipping CREATE EXTENSION` を受信し、以前に言語サービス エンドポイントとキーを使用して拡張機能を構成している場合は、`azure_ai.get_setting()` 関数を使用してこれらの設定が正しいことを確認し、正しい場合は手順 2 をスキップできます。
+> [!Note]
+>
+> 上記の `azure_ai` 拡張機能のインストール時にメッセージ `NOTICE: extension "azure_ai" already exists, skipping CREATE EXTENSION` を受信し、以前に言語サービス エンドポイントとキーを使用して拡張機能を構成している場合は、`azure_ai.get_setting()` 関数を使用してこれらの設定が正しいことを確認し、正しい場合は手順 2 をスキップできます。
 
-2. エンドポイントとアクセス キーの値をコピーし、以下のコマンドで、`{endpoint}` トークンと `{api-key}` トークンを Azure portal からコピーした値に置換します。 Cloud Shell の `psql` コマンド プロンプトからコマンドを実行して、`azure_ai.settings` テーブルに値を追加します。
+2. エンドポイントとアクセス キーの値をコピーし、以下のコマンドで、`{endpoint}` トークンと `{api-key}` トークンを、Azure portal からコピーした値に置換します。 Cloud Shell の `psql` コマンド プロンプトからコマンドを実行して、`azure_ai.settings` テーブルに値を追加します。
 
     ```sql
     SELECT azure_ai.set_setting('azure_cognitive.endpoint', '{endpoint}');
@@ -214,15 +214,15 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
     \x auto
     ```
 
-3. `azure_ai` 拡張機能の感情分析機能は、`azure_cognitive` スキーマ内にあります。 `analyze_sentiment()` 関数を使用します。 [`\df` メタコマンド](https://www.postgresql.org/docs/current/app-psql.html#APP-PSQL-META-COMMAND-DF-LC)を使用して、次を実行して関数を調べます。
+3. `azure_ai` 拡張機能の感情分析機能は、`azure_cognitive` スキーマ内にあります。 `analyze_sentiment()` 関数を使用します。 [`\df` メタコマンド](https://www.postgresql.org/docs/current/app-psql.html#APP-PSQL-META-COMMAND-DF-LC)を使用して、以下を実行して関数を調べます。
 
     ```sql
     \df azure_cognitive.analyze_sentiment
     ```
 
-    メタコマンドの出力には、関数のスキーマ、名前、結果のデータ型、引数が表示されます。 この情報は、クエリから関数を操作する方法を理解するのに役立ちます。
+    このメタコマンドの出力には、関数のスキーマ、名前、結果のデータ型、引数が表示されます。 この情報は、クエリから関数を操作する方法を理解するのに役立ちます。
 
-    出力には、`analyze_sentiment()` 関数の 3 つのオーバーロードが示されており、それらの違いを確認できます。 出力の `Argument data types` プロパティにより、関数の 3 つのオーバーロードが要求する引数の一覧が表示されます。
+    出力には、`analyze_sentiment()` 関数の 3 つのオーバーロードが示されており、それらの違いを確認できます。 出力の `Argument data types` プロパティにより、関数の 3 つのオーバーロードが想定する引数の一覧が表示されます。
 
     | 引数 | 型 | Default | 説明 |
     | -------- | ---- | ------- | ----------- |
@@ -235,19 +235,19 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
     | max_attempts | `integer` | 1 | エラー発生時に Azure AI サービスへの呼び出しを再試行する回数。 |
     | retry_delay_ms | `integer` | 1000 | Azure AI サービス エンドポイントの呼び出しを再試行する前の待機時間 (ミリ秒単位)。 |
 
-4. また、クエリの出力を正しく処理できるように、関数が返すデータ型の構造を理解しておくことも不可欠です。 次のコマンドを実行して、`sentiment_analysis_result` の型を調べます。
+4. また、クエリの出力を正しく処理できるように、関数が返すデータ型の構造を理解しておくことも不可欠です。 次のコマンドを実行して、`sentiment_analysis_result` 型を調べます。
 
     ```sql
     \dT+ azure_cognitive.sentiment_analysis_result
     ```
 
-5. 上記のコマンドの出力により、`sentiment_analysis_result` の型が `tuple` であることがわかります。 次のコマンドを実行して `sentiment_analysis_result` の型に含まれる列を確認することで、その `tuple` の構造をさらに詳しく調べることができます。
+5. 上記のコマンドの出力により、`sentiment_analysis_result` 型が `tuple` であることがわかります。 次のコマンドを実行して `sentiment_analysis_result` 型に含まれる列を確認することで、その `tuple` の構造をさらに詳しく調べることができます。
 
     ```sql
     \d+ azure_cognitive.sentiment_analysis_result
     ```
 
-    そのコマンドの出力は次のようになるはずです。
+    そのコマンドの出力は次のようになります。
 
     ```sql
                      Composite type "azure_cognitive.sentiment_analysis_result"
@@ -263,7 +263,7 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
 
 ## レビューのセンチメントを分析する
 
-1. `analyze_sentiment()` 関数とその戻り値である `sentiment_analysis_result` を確認したので、この関数を配置して使用しましょう。 次の簡単なクエリを実行します。このクエリでは、`reviews` テーブル内の少数のコメントに対して感情分析を実行します。
+1. `analyze_sentiment()` 関数とその戻り値である `sentiment_analysis_result` を確認したので、次は、この関数を配置して使用しましょう。 次の簡単なクエリを実行します。このクエリでは、`reviews` テーブル内の少数のコメントに対して感情分析を実行します。
 
     ```sql
     SELECT
@@ -274,13 +274,13 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
     ORDER BY id;
     ```
 
-    分析された 2 つのレコードから、出力、`(mixed,0.71,0.09,0.2)`、および `(positive,0.99,0.01,0)` の `sentiment` 値をメモします。 これらは、上記のクエリで `analyze_sentiment()` 関数によって返される `sentiment_analysis_result` を表します。 分析は、`reviews` テーブルの `comments` フィールドに対して実行されました。
+    分析された 2 つのレコードから、出力、`(mixed,0.71,0.09,0.2)`、および `(positive,0.99,0.01,0)` の `sentiment` 値をメモします。 これらは、上記のクエリで `analyze_sentiment()` 関数から返される `sentiment_analysis_result` を表します。 `reviews` テーブルの `comments` フィールドに対して分析が実行されました。
 
     > [!Note]
     >
     > `analyze_sentiment()` 関数をインラインで使用すると、クエリ内のテキストのセンチメントをすばやく分析できます。 これは少数のレコードに適していますが、多数のレコードのセンチメントを分析したり、数万件以上のレビューを含むテーブル内のすべてのレコードを更新したりするのには適していない場合があります。
 
-2. 長いレビューで利便性が高いもう 1 つのアプローチは、その中の各文のセンチメントを分析することです。 これを行うには、テキストの配列を受け取る `analyze_sentiment()` 関数のオーバーロードを使用します。
+2. レビューが長い場合に役立つもう 1 つのアプローチは、その中の各文のセンチメントを分析することです。 それには、テキストの配列を受け取る、`analyze_sentiment()` 関数のオーバーロードを使用します。
 
     ```sql
     SELECT
@@ -289,11 +289,11 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
     WHERE id = 1;
     ```
 
-    上記のクエリでは、PostgreSQL の `STRING_TO_ARRAY` 関数を使用しました。 さらに、`analyze_sentiment()` 関数ではエラーが発生するため、空の文字列である配列要素を削除するのに `ARRAY_REMOVE` 関数を使用しました。
+    上記のクエリでは、PostgreSQL の `STRING_TO_ARRAY` 関数を使用しました。 さらに、`ARRAY_REMOVE` 関数を使用して、空の文字列である配列要素を削除しました。これらが `analyze_sentiment()` 関数でエラーの原因となるからです。
 
-    クエリからの出力により、全体的なレビューに割り当てられた `mixed` センチメントをより深く理解できます。 その文は、肯定的、中立的、否定的なセンチメントの組み合わせです。
+    クエリからの出力により、レビュー全体に割り当てられた `mixed` センチメントをより深く理解できます。 その文には、肯定的、中立的、否定的なセンチメントが混在しています。
 
-3. 前の 2 つのクエリは、クエリから直接 `sentiment_analysis_result` を返しました。 ただし、`sentiment_analysis_result``tuple` 内の基になる値を取得することが必要な可能性があります。 圧倒的に肯定的なレビューを検索し、センチメント コンポーネントを個々のフィールドに抽出する、次のクエリを実行します。
+3. 前の 2 つのクエリは、クエリから直接 `sentiment_analysis_result` を返しました。 ただし、`sentiment_analysis_result``tuple` 内の基になる値の取得が必要になる可能性があります。 圧倒的に肯定的なレビューを検索し、センチメント コンポーネントを個々のフィールドに抽出する、次のクエリを実行します。
 
     ```sql
     WITH cte AS (
@@ -315,7 +315,7 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
 
 ## レビュー テーブルにセンチメントを格納する
 
-Margie's Travel のために構築している賃貸物件のレコメンデーション システムでは、センチメント評価をデータベースに格納して、センチメント評価が要求されるたびに、呼び出しを行う必要がなく、コストが発生しないようにしようと考えています。 感情分析のオンザフライでの実行は、少数のレコードや、ほぼリアルタイムのデータ分析に適している可能性があります。 それでも、アプリケーションで使用するためにセンチメント データをデータベースに追加することは、格納されたレビューに対して理にかなっています。 これを行うには、`reviews` テーブルを変更して、センチメント評価と肯定的、中立的、否定的なスコアを格納するための列を追加します。
+Margie's Travel のために構築している賃貸物件のレコメンデーション システムでは、センチメント評価をデータベースに格納して、センチメント評価が要求されるたびに呼び出しを行う必要がなく、そのためのコストが発生しないようにしようと考えています。 感情分析のオンザフライでの実行は、少数のレコードや、ほぼリアルタイムのデータ分析に適しています。 それでも、アプリケーションで使用するためにセンチメント データをデータベースに追加することは、格納されたレビューにとって意味があります。 これを行うには、`reviews` テーブルを変更して、センチメント評価と肯定的、中立的、否定的なスコアを格納するための列を追加します。
 
 1. 次のクエリを実行して、センチメントの詳細を格納できるように `reviews` テーブルを更新します。
 
@@ -327,7 +327,7 @@ Margie's Travel のために構築している賃貸物件のレコメンデー�
     ADD COLUMN negative_score numeric;
     ```
 
-2. 次に、`reviews` テーブル内の既存のレコードを、センチメント値と関連するスコアで更新します。
+2. 次に、`reviews` テーブル内の既存のレコードに、センチメント値と関連スコアを反映させます。
 
     ```sql
     WITH cte AS (
@@ -343,9 +343,9 @@ Margie's Travel のために構築している賃貸物件のレコメンデー�
     WHERE r.id = cte.id;
     ```
 
-    テーブル内のすべてのレビューのコメントが分析のために言語サービスのエンドポイントに個別に送信されるため、このクエリの実行には時間がかかります。 多数のレコードを処理する場合は、バッチでレコードを送信する方が効率的です。
+    テーブル内のすべてのレビューのコメントが分析のために言語サービスのエンドポイントに個別に送信されるので、このクエリの実行には時間がかかります。 多数のレコードを処理する場合は、レコードを一括送信する方が効率的です。
 
-3. 次のクエリを実行して同じ更新アクションを実行しますが、今回は 10 個 (これは許可される最大バッチ サイズ) のバッチで `reviews` テーブルからコメントを送信し、パフォーマンスの違いを評価します。
+3. 次のクエリを実行して同じ更新アクションを実行しますが、今回は `reviews` テーブルからコメントを 10 個 (可能な最大のバッチ サイズ) ずつまとめて送信し、パフォーマンスの違いを評価します。
 
     ```sql
     WITH cte AS (
@@ -367,9 +367,9 @@ Margie's Travel のために構築している賃貸物件のレコメンデー�
     WHERE r.id = sentiment_cte.id;
     ```
 
-    このクエリはもう少し複雑ですが、2 つの CTE を使用するとパフォーマンスが大幅に向上します。 このクエリでは、最初の CTE はレビュー コメントのバッチのセンチメントを分析し、2 つ目の CTE は結果の `sentiment_analysis_results` テーブルを、序数の位置と各行の "sentiment_analysis_result" に基づいて `id` を含む新しいテーブルに抽出します。 そして、2 つ目の CTE を更新ステートメントで使用して、値をデータベースに書き込むことができます。
+    このクエリはもう少し複雑ですが、2 つの CTE を使用するとパフォーマンスが大幅に向上します。 このクエリでは、最初の CTE はレビュー コメントのバッチのセンチメントを分析し、2 つ目の CTE は結果の `sentiment_analysis_results` テーブルを、序数の位置と各行の "sentiment_analysis_result" に基づいて、`id` を含む新しいテーブルに抽出します。 そのあと、2 つ目の CTE を更新ステートメントで使用して、値をデータベースに書き込むことができます。
 
-4. 次に、更新結果を確認するクエリを実行し、センチメントが**否定的な**レビューを否定的な順に検索します。
+4. 次に、更新結果を確認するクエリを実行し、センチメントが**否定的な**レビューを、最も否定的なものから順に検索します。
 
     ```sql
     SELECT

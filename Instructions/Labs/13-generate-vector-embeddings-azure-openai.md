@@ -6,17 +6,17 @@ lab:
 
 # Azure OpenAI を使用してベクトル埋め込みを生成する
 
-セマンティック検索を実行するには、まずモデルから埋め込みベクトルを生成し、ベクトル データベースに格納してから、埋め込みのクエリを実行する必要があります。 データベースを作成し、サンプル データを設定し、それらの一覧に対してセマンティック検索を実行します。
+セマンティック検索を実行するには、まずモデルから埋め込みベクトルを生成してベクトル データベースに格納してから、埋め込みのクエリを実行する必要があります。 データベースを作成し、そこにサンプル データを入力し、それらの一覧に対してセマンティック検索を実行します。
 
 この演習が終了すると、`vector` および `azure_ai` 拡張機能が有効になった Azure Database for PostgreSQL フレキシブル サーバー インスタンスが作成されます。 [Seattle Airbnb Open Data](https://www.kaggle.com/datasets/airbnb/seattle?select=listings.csv) データセットの `listings` テーブルの埋め込みを生成します。 また、クエリの埋め込みベクトルを生成し、ベクトル コサイン距離検索を実行することで、これらの一覧に対してセマンティック検索を実行します。
 
 ## 開始する前に
 
-管理者権限を持つ [Azure サブスクリプション](https://azure.microsoft.com/free)が必要であり、そのサブスクリプションで Azure OpenAI アクセスが承認されている必要があります。 Azure OpenAI アクセスが必要な場合、[Azure OpenAI の制限付きアクセス](https://learn.microsoft.com/legal/cognitive-services/openai/limited-access)に関するページで申請してください。
+管理者権限のある [Azure サブスクリプション](https://azure.microsoft.com/free)が必要です。
 
 ### Azure サブスクリプションにリソースをデプロイする
 
-この手順では、Azure Cloud Shell の Azure CLI コマンドにより、リソース グループを作成し、Bicep スクリプトを実行して、この演習を完了するのに必要な Azure サービスを Azure サブスクリプションにデプロイします。
+このステップ ガイドでは、Azure Cloud Shell の Azure CLI コマンドにより、リソース グループを作成し、Bicep スクリプトを実行して、この演習を完了するのに必要な Azure サービスを Azure サブスクリプションにデプロイします。
 
 > **注**: このラーニング パスで複数のモジュールを行う場合は、それらの間で Azure 環境を共有できます。 その場合は、このリソース デプロイ手順を 1 回完了するだけで済みます。
 
@@ -28,21 +28,21 @@ lab:
 
     メッセージが表示されたら、必要なオプションを選択して *Bash* シェルを開きます。 以前に *PowerShell* コンソールを使用している場合は、*Bash* シェルに切り替えます。
 
-3. Cloud Shell プロンプトで、次のように入力して、演習リソースを含む GitHub リポジトリを複製します。
+3. Cloud Shell プロンプトで、次のように入力して、演習リソースを含んだ GitHub リポジトリをクローンします。
 
     ```bash
     git clone https://github.com/MicrosoftLearning/mslearn-postgresql.git
     ```
 
-4. 次に、Azure CLI コマンドを使用して Azure リソースを作成するときに、冗長な型指定を減らすための変数を定義する 3 つのコマンドを実行します。 この変数は、リソース グループに割り当てる名前 (`RG_NAME`)、リソースがデプロイされる Azure リージョン (`REGION`)、PostgreSQL 管理者ログイン用にランダムに生成されたパスワード (`ADMIN_PASSWORD`) を表します。
+4. 次に、3 つのコマンドを実行して、Azure CLI コマンドを使用して Azure リソースを作成するときに冗長な入力を減らすための変数を定義します。 これらの変数は、リソース グループに割り当てる名前 (`RG_NAME`)、リソースがデプロイされる Azure リージョン (`REGION`)、PostgreSQL 管理者ログイン用にランダムに生成されたパスワード (`ADMIN_PASSWORD`) を表します。
 
-    最初のコマンドで、対応する変数に割り当てられるリージョンは `eastus` ですが、任意の場所に置き換えることもできます。 ただし、既定値を置き換える場合は、このラーニング パスのモジュール内のすべてのタスクを完了できるように、[抽象的な要約をサポートしている別の Azure リージョン](https://learn.microsoft.com/azure/ai-services/language-service/summarization/region-support)を選択する必要があります。
+    最初のコマンドでは、対応する変数に割り当てられるリージョンは `eastus` ですが、任意の場所に置き換えることもできます。 ただし、既定値を置き換える場合は、このラーニング パスのモジュール内のすべてのタスクを完了できるように、[抽象要約をサポートしている別の Azure リージョン](https://learn.microsoft.com/azure/ai-services/language-service/summarization/region-support)を選択する必要があります。
 
     ```bash
     REGION=eastus
     ```
 
-    次のコマンドで、この演習で使用されるすべてのリソースを格納するリソース グループに使用する名前が割り当てられます。 対応する変数に割り当てられたリソース グループ名は `rg-learn-postgresql-ai-$REGION` で、その中の `$REGION` は上で指定した場所です。 ただし、この部分は好みに合わせて他のリソース グループ名に変更できます。
+    次のコマンドでは、この演習で使用されるすべてのリソースを格納するリソース グループに使用する名前が割り当てられます。 対応する変数に割り当てられたリソース グループ名は `rg-learn-postgresql-ai-$REGION` で、その中の `$REGION` は上で指定した場所です。 ただし、この部分は好みに合わせて他のリソース グループ名に変更できます。
 
     ```bash
     RG_NAME=rg-learn-postgresql-ai-$REGION
@@ -55,13 +55,13 @@ lab:
     for i in {a..z} {A..Z} {0..9}; 
         do
         a[$RANDOM]=$i
-    done
+        done
     ADMIN_PASSWORD=$(IFS=; echo "${a[*]::18}")
     echo "Your randomly generated PostgreSQL admin user's password is:"
     echo $ADMIN_PASSWORD
     ```
 
-5. 複数の Azure サブスクリプションにアクセスでき、既定のサブスクリプションがこの演習でリソース グループとその他のリソースを作成するものでない場合は、次のコマンドを実行して適切なサブスクリプションを設定し、`<subscriptionName|subscriptionId>` トークンを使用するサブスクリプションの名前または ID に置き換えます。
+5. 複数の Azure サブスクリプションにアクセスでき、この演習のリソース グループやその他のリソースを作成するサブスクリプションが既定のサブスクリプションでない場合は、次のコマンドを実行して適切なサブスクリプションを設定し、`<subscriptionName|subscriptionId>` トークンを、使用するサブスクリプションの名前または ID に置き換えます。
 
     ```azurecli
     az account set --subscription <subscriptionName|subscriptionId>
@@ -73,15 +73,15 @@ lab:
     az group create --name $RG_NAME --location $REGION
     ```
 
-7. 最後に、Azure CLI を使用して Bicep デプロイ スクリプトを実行し、リソース グループ内の Azure リソースをプロビジョニングします。
+7. 最後に、Azure CLI を使用して Bicep デプロイ スクリプトを実行し、リソース グループに Azure リソースをプロビジョニングします。
 
     ```azurecli
     az deployment group create --resource-group $RG_NAME --template-file "mslearn-postgresql/Allfiles/Labs/Shared/deploy.bicep" --parameters restore=false adminLogin=pgAdmin adminLoginPassword=$ADMIN_PASSWORD
     ```
 
-    Bicep デプロイ スクリプトでは、この演習を完了するのに必要な Azure サービスがリソース グループにプロビジョニングされます。 デプロイされるリソースは、Azure Database for PostgreSQL - フレキシブル サーバー、Azure OpenAI、Azure AI Language サービスなどです。 また、Bicep スクリプトでは、PostgreSQL サーバーの_許可リスト_に `azure_ai` 拡張機能や `vector` 拡張機能を追加する (`azure.extensions` サーバー パラメーターを使用)、サーバーに `rentals` という名前のデータベースを作成する、`text-embedding-ada-002` モデルを使用して `embedding` という名前のデプロイを Azure OpenAI サービスに追加するなど、いくつかの構成手順も実行されます。 なお、Bicep ファイルは、このラーニング パス内のすべてのモジュールで共有されるため、一部の演習ではデプロイされたリソースの一部のみを使用できます。
+    Bicep デプロイ スクリプトでは、この演習を完了するのに必要な Azure サービスがリソース グループにプロビジョニングされます。 デプロイされるリソースは、Azure Database for PostgreSQL - フレキシブル サーバー、Azure OpenAI、Azure AI Language サービスなどです。 また、Bicep スクリプトでは、(`azure.extensions` サーバー パラメーターを使用して) PostgreSQL サーバーの_許可リスト_に `azure_ai` 拡張機能や `vector` 拡張機能を追加する、サーバーに `rentals` という名前のデータベースを作成する、`text-embedding-ada-002` モデルを使用して `embedding` という名前のデプロイを Azure OpenAI Service に追加するといった、いくつかの構成手順も実行されます。 なお、Bicep ファイルは、このラーニング パス内のすべてのモジュールで共有されるため、一部の演習ではデプロイされたリソースの一部のみを使用できます。
 
-    デプロイが完了するまでに通常数分かかります。 Cloud Shell から監視するか、上で作成したリソース グループの **[デプロイ]** ページに移動し、そこでデプロイの進行状況を確認することができます。
+    デプロイが完了するまでに通常は数分かかります。 Cloud Shell から監視するか、上記で作成したリソース グループの **[デプロイ]** ページに移動し、そこでデプロイの進行状況を確認することができます。
 
 8. リソースのデプロイが完了したら、Cloud Shell 画面を閉じます。
  
@@ -89,7 +89,7 @@ lab:
 
 Bicep デプロイ スクリプトを実行すると、いくつかエラーが発生する場合があります。
 
-- 以前にこのラーニング パスで Bicep デプロイ スクリプトを実行してその後リソースを削除した場合、リソースを削除してから 48 時間以内にスクリプトをまた実行しようとすると、次のようなエラー メッセージが表示される場合があります。
+- 以前にこのラーニング パスで Bicep デプロイ スクリプトを実行し、その後でリソースを削除した場合、リソースを削除してから 48 時間以内にスクリプトをまた実行しようとすると、次のようなエラー メッセージが表示される場合があります。
 
     ```bash
     {"code": "InvalidTemplateDeployment", "message": "The template deployment 'deploy' is not valid according to the validation procedure. The tracking id is '4e87a33d-a0ac-4aec-88d8-177b04c1d752'. See inner errors for details."}
@@ -121,7 +121,7 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
 
 1. [Azure portal](https://portal.azure.com/) で、新しく作成した Azure Database for PostgreSQL - フレキシブル サーバーに移動します。
 
-2. リソース メニューの **[設定]** で **[データベース]** を選択し、`rentals` データベースの **[接続]** を選択します。
+2. リソース メニューの **[設定]** で、**[データベース]** を選択し、`rentals` データベースの **[接続]** を選択します。
 
     ![Azure Database for PostgreSQL の [データベース] ページのスクリーンショット。 [データベース] と rentals データベースの [接続] が赤い四角で強調表示されています。](media/13-postgresql-rentals-database-connect.png)
 
@@ -129,7 +129,7 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
 
     ログインすると、`rentals` データベースの `psql` プロンプトが表示されます。
 
-4. この演習の残りの部分は Cloud Shell で作業を続けるため、ペインの右上にある **[最大化]** ボタンを選択して、ブラウザー画面内にペインを展開すると便利な場合があります。
+4. この演習の残りの部分は Cloud Shell で作業を続けるので、ペインの右上にある **[最大化]** ボタンを選択して、ブラウザー画面内にペインを広げると便利な場合があります。
 
     ![[最大化] ボタンが赤い四角で強調表示されている Azure Cloud Shell 画面のスクリーンショット。](media/13-azure-cloud-shell-pane-maximize.png)
 
@@ -137,7 +137,7 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
 
 ベクトルを格納してそのクエリを実行し、埋め込みを生成するには、Azure Database for PostgreSQL フレキシブル サーバーの 2 つの拡張機能 (`vector` と `azure_ai`) を許可リストに追加して有効にする必要があります。
 
-1. 両方の拡張機能を許可リストに追加するには、「[PostgreSQL 拡張機能の使用方法](https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-extensions#how-to-use-postgresql-extensions)」に記載されている手順に従って、サーバー パラメーター `azure.extensions` に `vector` と `azure_ai` を追加します。
+1. 両方の拡張機能を許可リストに追加するには、「[PostgreSQL 拡張機能の使用方法](https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-extensions#how-to-use-postgresql-extensions)」で説明されている手順に従って、サーバー パラメーター `azure.extensions` に `vector` と `azure_ai` を追加します。
 
 2. 次の SQL コマンドを実行して、`vector` 拡張機能を有効にします。 詳細な手順については、「[Azure Database for PostgreSQL - フレキシブル サーバーで `pgvector` を有効にして使用する方法](https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/how-to-use-pgvector#enable-extension)」をご覧ください。
 
@@ -200,15 +200,15 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
 
     コマンドの出力は `COPY 354` となるはずです。これは、CSV ファイルから 354 行がテーブルに書き込まれたことを示しています。
 
-サンプル データを再設定するには、`DROP TABLE listings`を実行し、この手順を繰り返します。
+サンプル データを再設定するには、`DROP TABLE listings` を実行し、この手順を繰り返します。
 
 ## 埋め込みベクターを作成して格納する
 
-サンプル データが用意されたので、次に埋め込みベクターを生成して格納します。 `azure_ai` 拡張機能を使用すると、Azure OpenAI 埋め込み API の呼び出しが簡単になります。
+サンプル データが用意されたので、次に埋め込みベクターを生成して格納します。 `azure_ai` 拡張機能を使用すると、Azure OpenAI 埋め込み API を呼び出しやすくなります。
 
 1. 埋め込みベクター列を追加します。
 
-    `text-embedding-ada-002` モデルは 1,536 次元を返すように構成されているため、ベクター列のサイズに使用します。
+    `text-embedding-ada-002` モデルは 1,536 次元を返すように構成されているので、ベクター列のサイズに使用します。
 
     ```sql
     ALTER TABLE listings ADD COLUMN listing_vector vector(1536);
@@ -222,9 +222,9 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
     WHERE listing_vector IS NULL;
     ```
 
-    使用可能なクォータによっては、これに数分かかる場合があることに注意してください。
+    なお、使用可能なクォータによっては、これに数分かかる場合があります。
 
-1. このクエリを実行してベクターの例を確認します。
+1. このクエリを実行して、ベクターの例を確認します。
 
     ```sql
     SELECT listing_vector FROM listings LIMIT 1;
@@ -248,7 +248,7 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
     SELECT azure_openai.create_embeddings('embedding', 'bright natural light');
     ```
 
-    次のような結果が得られます。
+    次のような結果になります。
 
     ```sql
     -[ RECORD 1 ]-----+-- ...
@@ -261,7 +261,7 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
     SELECT id, name FROM listings ORDER BY listing_vector <=> azure_openai.create_embeddings('embedding', 'bright natural light')::vector LIMIT 10;
     ```
 
-    次のような結果が得られます。 埋め込みベクトルは決定性が保証されていないため、結果は異なる場合があります。
+    次のような結果になります。 埋め込みベクトルは決定性が保証されていないので、結果は異なる場合があります。
 
     ```sql
         id    |                name                
@@ -278,13 +278,13 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
      5578943  | Madrona Studio w/Private Entrance
     ```
 
-1. また、説明が意味的に類似しているマッチした行のテキストを読み取ることができるように、`description` 列を射影することもできます。 たとえば、このクエリは最適なマッチを返します。
+1. また、説明が意味的に類似している一致した行のテキストを読み取ることができるように、`description` 列を射影することもできます。 たとえば、このクエリは最適な一致を返します。
 
     ```sql
     SELECT id, description FROM listings ORDER BY listing_vector <=> azure_openai.create_embeddings('embedding', 'bright natural light')::vector LIMIT 1;
     ```
 
-    この結果、次のようなものが出力されます。
+    この結果、次のような出力が得られます。
 
     ```sql
        id    | description
@@ -296,7 +296,7 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
 
 ## 作業を確認
 
-上記の手順を実行すると、`listings` テーブルには、Kaggle の「[Seattle Airbnb Open Data](https://www.kaggle.com/datasets/airbnb/seattle/data?select=listings.csv)」のサンプル データが格納されます。 物件は、セマンティック検索を実行するための埋め込みベクターで拡張されました。
+上記の手順を実行すると、`listings` テーブルには、Kaggle の [Seattle Airbnb Open Data](https://www.kaggle.com/datasets/airbnb/seattle/data?select=listings.csv) のサンプル データが格納されます。 物件は、セマンティック検索を実行するための埋め込みベクターで拡張されました。
 
 1. 物件のテーブルに 4 つの列 (`id`、`name`、`description`、`listing_vector`) があることを確認します。
 
@@ -304,7 +304,7 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
     \d listings
     ```
 
-    次のようなものが出力されるはずです。
+    次のような出力になるはずです。
 
     ```sql
                             Table "public.listings"
