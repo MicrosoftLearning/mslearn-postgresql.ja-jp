@@ -10,11 +10,11 @@ Margie's Travel が管理する賃貸物件アプリには、プロパティ マ
 
 ## 開始する前に
 
-管理者権限を持つ [Azure サブスクリプション](https://azure.microsoft.com/free)が必要であり、そのサブスクリプションで Azure OpenAI アクセスが承認されている必要があります。 Azure OpenAI アクセスが必要な場合、[Azure OpenAI の制限付きアクセス](https://learn.microsoft.com/legal/cognitive-services/openai/limited-access)に関するページで申請してください。
+管理者権限のある [Azure サブスクリプション](https://azure.microsoft.com/free)が必要です。
 
 ### Azure サブスクリプションにリソースをデプロイする
 
-この手順では、Azure Cloud Shell の Azure CLI コマンドにより、リソース グループを作成し、Bicep スクリプトを実行して、この演習を完了するのに必要な Azure サービスを Azure サブスクリプションにデプロイします。
+このステップ ガイドでは、Azure Cloud Shell の Azure CLI コマンドにより、リソース グループを作成し、Bicep スクリプトを実行して、この演習を完了するのに必要な Azure サービスを Azure サブスクリプションにデプロイします。
 
 1. Web ブラウザーを開いて [Azure portal](https://portal.azure.com/) に移動します。
 
@@ -24,21 +24,21 @@ Margie's Travel が管理する賃貸物件アプリには、プロパティ マ
 
     メッセージが表示されたら、必要なオプションを選択して *Bash* シェルを開きます。 以前に *PowerShell* コンソールを使用している場合は、*Bash* シェルに切り替えます。
 
-3. Cloud Shell プロンプトで、次のように入力して、演習リソースを含む GitHub リポジトリを複製します。
+3. Cloud Shell プロンプトで、次のように入力して、演習リソースを含んだ GitHub リポジトリをクローンします。
 
     ```bash
     git clone https://github.com/MicrosoftLearning/mslearn-postgresql.git
     ```
 
-4. 次に、Azure CLI コマンドを使用して Azure リソースを作成するときに、冗長な型指定を減らすための変数を定義する 3 つのコマンドを実行します。 この変数は、リソース グループに割り当てる名前 (`RG_NAME`)、リソースがデプロイされる Azure リージョン (`REGION`)、PostgreSQL 管理者ログイン用にランダムに生成されたパスワード (`ADMIN_PASSWORD`) を表します。
+4. 次に、3 つのコマンドを実行して、Azure CLI コマンドを使用して Azure リソースを作成するときに冗長な入力を減らすための変数を定義します。 これらの変数は、リソース グループに割り当てる名前 (`RG_NAME`)、リソースがデプロイされる Azure リージョン (`REGION`)、PostgreSQL 管理者ログイン用にランダムに生成されたパスワード (`ADMIN_PASSWORD`) を表します。
 
-    最初のコマンドで、対応する変数に割り当てられるリージョンは `eastus` ですが、任意の場所に置き換えることもできます。 ただし、既定値を置き換える場合は、このラーニング パスのモジュール内のすべてのタスクを完了できるように、[抽象的な要約をサポートしている別の Azure リージョン](https://learn.microsoft.com/azure/ai-services/language-service/summarization/region-support)を選択する必要があります。
+    最初のコマンドでは、対応する変数に割り当てられるリージョンは `eastus` ですが、任意の場所に置き換えることもできます。 ただし、既定値を置き換える場合は、このラーニング パスのモジュール内のすべてのタスクを完了できるように、[抽象要約をサポートしている別の Azure リージョン](https://learn.microsoft.com/azure/ai-services/language-service/summarization/region-support)を選択する必要があります。
 
     ```bash
     REGION=eastus
     ```
 
-    次のコマンドで、この演習で使用されるすべてのリソースを格納するリソース グループに使用する名前が割り当てられます。 対応する変数に割り当てられたリソース グループ名は `rg-learn-postgresql-ai-$REGION` で、その中の `$REGION` は上で指定した場所です。 ただし、この部分は好みに合わせて他のリソース グループ名に変更できます。
+    次のコマンドでは、この演習で使用されるすべてのリソースを格納するリソース グループに使用する名前が割り当てられます。 対応する変数に割り当てられたリソース グループ名は `rg-learn-postgresql-ai-$REGION` で、その中の `$REGION` は上で指定した場所です。 ただし、この部分は好みに合わせて他のリソース グループ名に変更できます。
 
     ```bash
     RG_NAME=rg-learn-postgresql-ai-$REGION
@@ -49,15 +49,15 @@ Margie's Travel が管理する賃貸物件アプリには、プロパティ マ
     ```bash
     a=()
     for i in {a..z} {A..Z} {0..9}; 
-       do
-       a[$RANDOM]=$i
-    done
+        do
+        a[$RANDOM]=$i
+        done
     ADMIN_PASSWORD=$(IFS=; echo "${a[*]::18}")
     echo "Your randomly generated PostgreSQL admin user's password is:"
     echo $ADMIN_PASSWORD
     ```
 
-5. 複数の Azure サブスクリプションにアクセスでき、既定のサブスクリプションがこの演習でリソース グループとその他のリソースを作成するものでない場合は、次のコマンドを実行して適切なサブスクリプションを設定し、`<subscriptionName|subscriptionId>` トークンを使用するサブスクリプションの名前または ID に置き換えます。
+5. 複数の Azure サブスクリプションにアクセスでき、この演習のリソース グループやその他のリソースを作成するサブスクリプションが既定のサブスクリプションでない場合は、次のコマンドを実行して適切なサブスクリプションを設定し、`<subscriptionName|subscriptionId>` トークンを、使用するサブスクリプションの名前または ID に置き換えます。
 
     ```azurecli
     az account set --subscription <subscriptionName|subscriptionId>
@@ -69,15 +69,15 @@ Margie's Travel が管理する賃貸物件アプリには、プロパティ マ
     az group create --name $RG_NAME --location $REGION
     ```
 
-7. 最後に、Azure CLI を使用して Bicep デプロイ スクリプトを実行し、リソース グループ内の Azure リソースをプロビジョニングします。
+7. 最後に、Azure CLI を使用して Bicep デプロイ スクリプトを実行し、リソース グループに Azure リソースをプロビジョニングします。
 
     ```azurecli
     az deployment group create --resource-group $RG_NAME --template-file "mslearn-postgresql/Allfiles/Labs/Shared/deploy.bicep" --parameters restore=false adminLogin=pgAdmin adminLoginPassword=$ADMIN_PASSWORD
     ```
 
-    Bicep デプロイ スクリプトでは、この演習を完了するのに必要な Azure サービスがリソース グループにプロビジョニングされます。 デプロイされるリソースは、Azure Database for PostgreSQL フレキシブル サーバー、Azure OpenAI、Azure AI 言語サービスなどです。 また、Bicep スクリプトでは、PostgreSQL サーバーの_許可リスト_に `azure_ai` 拡張機能や `vector` 拡張機能を追加する (azure.extensions サーバー パラメーターを使用)、サーバーに `rentals` という名前のデータベースを作成する、`text-embedding-ada-002` モデルを使用して `embedding` という名前のデプロイを Azure OpenAI サービスに追加するなど、いくつかの構成手順も実行されます。 なお、Bicep ファイルは、このラーニング パス内のすべてのモジュールで共有されるため、一部の演習ではデプロイされたリソースの一部のみを使用できます。
+    Bicep デプロイ スクリプトでは、この演習を完了するのに必要な Azure サービスがリソース グループにプロビジョニングされます。 デプロイされるリソースは、Azure Database for PostgreSQL フレキシブル サーバー、Azure OpenAI、Azure AI Language サービスなどです。 また、Bicep スクリプトでは、(azure.extensions サーバー パラメーターを使用して) PostgreSQL サーバーの_許可リスト_に `azure_ai` 拡張機能や `vector` 拡張機能を追加する、サーバーに `rentals` という名前のデータベースを作成する、`text-embedding-ada-002` モデルを使用して `embedding` という名前のデプロイを Azure OpenAI サービスに追加するといった、いくつかの構成手順も実行されます。 なお、Bicep ファイルは、このラーニング パス内のすべてのモジュールで共有されるため、一部の演習ではデプロイされたリソースの一部のみを使用できます。
 
-    デプロイが完了するまでに通常数分かかります。 Cloud Shell から監視するか、上で作成したリソース グループの **[デプロイ]** ページに移動し、そこでデプロイの進行状況を確認することができます。
+    デプロイが完了するまでに通常は数分かかります。 Cloud Shell から監視するか、上記で作成したリソース グループの **[デプロイ]** ページに移動し、そこでデプロイの進行状況を確認することができます。
 
 8. リソースのデプロイが完了したら、Cloud Shell 画面を閉じます。
 
@@ -85,7 +85,7 @@ Margie's Travel が管理する賃貸物件アプリには、プロパティ マ
 
 Bicep デプロイ スクリプトを実行すると、いくつかエラーが発生する場合があります。
 
-- 以前にこのラーニング パスで Bicep デプロイ スクリプトを実行してその後リソースを削除した場合、リソースを削除してから 48 時間以内にスクリプトをまた実行しようとすると、次のようなエラー メッセージが表示される場合があります。
+- 以前にこのラーニング パスで Bicep デプロイ スクリプトを実行し、その後でリソースを削除した場合、リソースを削除してから 48 時間以内にスクリプトをまた実行しようとすると、次のようなエラー メッセージが表示される場合があります。
 
     ```bash
     {"code": "InvalidTemplateDeployment", "message": "The template deployment 'deploy' is not valid according to the validation procedure. The tracking id is '4e87a33d-a0ac-4aec-88d8-177b04c1d752'. See inner errors for details."}
@@ -118,7 +118,7 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
 
 1. [Azure portal](https://portal.azure.com/) で、新しく作成した Azure Database for PostgreSQL フレキシブル サーバー インスタンスに移動します。
 
-2. リソース メニューの **[設定]** で **[データベース]** を選択し、`rentals` データベースの **[接続]** を選択します。
+2. リソース メニューの **[設定]** で、**[データベース]** を選択し、`rentals` データベースの **[接続]** を選択します。
 
     ![Azure Database for PostgreSQL の [データベース] ページのスクリーンショット。 [データベース] と rentals データベースの [接続] が赤い四角で強調表示されています。](media/15-postgresql-rentals-database-connect.png)
 
@@ -126,11 +126,11 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
 
     ログインすると、`rentals` データベースの `psql` プロンプトが表示されます。
 
-4. この演習の残りの部分は Cloud Shell で作業を続けるため、ペインの右上にある **[最大化]** ボタンを選択して、ブラウザー画面内にペインを展開すると便利な場合があります。
+4. この演習の残りの部分は Cloud Shell で作業を続けるので、ペインの右上にある **[最大化]** ボタンを選択して、ブラウザー画面内にペインを広げると便利な場合があります。
 
     ![[最大化] ボタンが赤い四角で強調表示されている Azure Cloud Shell 画面のスクリーンショット。](media/15-azure-cloud-shell-pane-maximize.png)
 
-## データベースにサンプル データを設定する
+## データベースにサンプル データを入力する
 
 `azure_ai` 拡張機能を調べる前に、機能を確認するときに扱う情報が得られるように、`rentals` データベースにテーブルをいくつか追加し、それらにサンプル データを入力します。
 
@@ -177,17 +177,17 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
 
     コマンドの出力は `COPY 354` となるはずです。これは、CSV ファイルから 354 行がテーブルに書き込まれたことを示しています。
 
-## `azure_ai` 拡張機能のインストールと構成
+## `azure_ai` 拡張機能をインストールし構成する
 
-`azure_ai` 拡張機能を使用する前に、それをデータベースにインストールし、Azure AI サービス リソースに接続するように構成する必要があります。 `azure_ai` 拡張機能を使用すると、Azure OpenAI および Azure AI Language サービスをデータベースに統合できます。 データベースで拡張機能を有効にするには、次の手順に従います。
+`azure_ai` 拡張機能を使用する前に、それをデータベースにインストールし、Azure AI サービス リソースに接続するように構成する必要があります。 `azure_ai` 拡張機能を使用すると、Azure OpenAI サービスと Azure AI Language サービスをデータベースに統合できます。 データベースで拡張機能を有効にするには、次の手順に従います。
 
-1. `psql` プロンプトで次のコマンドを実行して、環境のセットアップ時に実行した Bicep 配置スクリプトによって `azure_ai` および `vector` 拡張機能がサーバーの_許可リスト_に正常に追加されたことを確認します。
+1. `psql` プロンプトで次のコマンドを実行して、環境のセットアップ時に実行した Bicep デプロイ スクリプトによって `azure_ai` および `vector` 拡張機能がサーバーの_許可リスト_に正常に追加されたことを確認します。
 
     ```sql
     SHOW azure.extensions;
     ```
 
-    このコマンドは、サーバーの_許可リスト_上の拡張機能の一覧を表示します。 すべてが正しくインストールされている場合、出力には次のように `azure_ai` と `vector` が含まれるはずです。
+    このコマンドは、サーバーの_許可リスト_に含まれている拡張機能の一覧を表示します。 すべてが正しくインストールされている場合、出力には次のように `azure_ai` と `vector` が含まれているはずです。
 
     ```sql
      azure.extensions 
@@ -217,7 +217,7 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
     >
     > 上記の `azure_ai` 拡張機能のインストール時にメッセージ `NOTICE: extension "azure_ai" already exists, skipping CREATE EXTENSION` を受信し、以前に言語サービス エンドポイントとキーを使用して拡張機能を構成している場合は、`azure_ai.get_setting()` 関数を使用してこれらの設定が正しいことを確認し、正しい場合は手順 2 をスキップできます。
 
-2. エンドポイントとアクセス キーの値をコピーし、以下のコマンドで、`{endpoint}` トークンと `{api-key}` トークンを Azure portal からコピーした値に置換します。 Cloud Shell の `psql` コマンド プロンプトからコマンドを実行して、`azure_ai.settings` テーブルに値を追加します。
+2. エンドポイントとアクセス キーの値をコピーし、以下のコマンドで、`{endpoint}` トークンと `{api-key}` トークンを、Azure portal からコピーした値に置換します。 Cloud Shell の `psql` コマンド プロンプトからコマンドを実行して、`azure_ai.settings` テーブルに値を追加します。
 
     ```sql
     SELECT azure_ai.set_setting('azure_cognitive.endpoint', '{endpoint}');
@@ -247,9 +247,9 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
     \df azure_cognitive.summarize_extractive
     ```
 
-    メタコマンドの出力には、関数のスキーマ、名前、結果のデータ型、引数が表示されます。 この情報は、クエリから関数を操作する方法を理解するのに役立ちます。
+    このメタコマンドの出力には、関数のスキーマ、名前、結果のデータ型、引数が表示されます。 この情報は、クエリから関数を操作する方法を理解するのに役立ちます。
 
-    出力には `summarize_extractive()` 関数の 3 つのオーバーロードが示されており、それらの違いを確認できます。 出力の `Argument data types` プロパティにより、関数の 3 つのオーバーロードが要求する引数の一覧が表示されます。
+    出力には、`summarize_extractive()` 関数の 3 つのオーバーロードが示されており、それらの違いを確認できます。 出力の `Argument data types` プロパティにより、関数の 3 つのオーバーロードが想定する引数の一覧が表示されます。
 
     | 引数 | 型 | Default | 説明 |
     | -------- | ---- | ------- | ----------- |
