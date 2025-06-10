@@ -132,7 +132,7 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
 
 1. [Azure portal](https://portal.azure.com/) で、新しく作成した Azure Database for PostgreSQL - フレキシブル サーバーに移動します。
 
-2. リソース メニューの **[設定]** で、**[データベース]** を選択し、`rentals` データベースの **[接続]** を選択します。
+2. リソース メニューの **[設定]** で、**[データベース]** を選択し、`rentals` データベースの **[接続]** を選択します。 **[接続]** を選択しても、実際にデータベースには接続されないことに注意してください。さまざまな方法を使用してデータベースに接続する手順を示すだけです。 **ブラウザーまたはローカルから接続**する手順を確認し、それらの手順で、Azure Cloud Shell を使用して接続します。
 
     ![Azure Database for PostgreSQL の [データベース] ページのスクリーンショット。 [データベース] と rentals データベースの [接続] が赤い四角で強調表示されています。](media/17-postgresql-rentals-database-connect.png)
 
@@ -299,7 +299,7 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
     ```sql
     SELECT id, name
     FROM listings, unnest(listings.entities) AS e
-    WHERE e.text LIKE '%roof%deck%'
+    WHERE e.text LIKE '%basements%'
     LIMIT 10;
     ```
 
@@ -381,7 +381,7 @@ Bicep デプロイ スクリプトを実行すると、いくつかエラーが�
 4. たとえば、上と全く同じ物件を使用するなど、PII で認識されるエンティティを識別することもできます。
 
     ```sql
-    SELECT entities
+    SELECT pii_entities
     FROM listings
     WHERE entities IS NOT NULL
     LIMIT 1;
