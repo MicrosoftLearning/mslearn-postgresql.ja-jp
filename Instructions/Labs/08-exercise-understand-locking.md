@@ -237,7 +237,7 @@ psql -h <servername> -p <port> -U <username> <dbname>
     サーバー名は、Azure portal の **[概要]** で、または bicep スクリプトの出力として確認できます。
 
     ```sql
-   psql -h <servername>.postgres.database.azure.com -p 5432 -U pgAdmin postgres
+   psql -h <servername>.postgres.database.azure.com -p 5432 -U pgAdmin adventureworks
     ```
 
     先ほどコピーした管理者アカウントのパスワードの入力を求めるメッセージが表示されます。
@@ -272,7 +272,7 @@ psql -h <servername> -p <port> -U <username> <dbname>
 1. 次に、`COPY` コマンドを使用して、先ほど作成したテーブルに CSV ファイルからデータを読み込みます。 まず、次のコマンドを実行して、`production.workorder` テーブルにデータを入力します。
 
     ```sql
-    \COPY production.workorder FROM 'mslearn-postgresql/Allfiles/Labs/08/Lab8_workorder.csv' CSV HEADER
+    \COPY production.workorder FROM 'Allfiles/Labs/08/Lab8_workorder.csv' CSV HEADER
     ```
 
     コマンドの出力は `COPY 72591` となるはずです。これは、CSV ファイルから 72,591 行がテーブルに書き込まれたことを示しています。
@@ -355,7 +355,7 @@ psql -h <servername> -p <port> -U <username> <dbname>
 
 1. *最初*のクエリ ウィンドウに戻り、そのウィンドウでクエリをもう一度実行します。
 
-1. 最初の行の **stockedqty** の値がまだ **673** であることに注意してください。 このクエリにはデータのスナップショットが使用されていて、他のトランザクションからの更新は表示されません。
+1. 最初の行の **scrappedqty** 値が **673** であることに注意してください。 このクエリにはデータのスナップショットが使用されていて、他のトランザクションからの更新は表示されません。
 
 1. *2 番目* のクエリのタブを選択し、既存のクエリを削除してから、次のクエリを入力して **[実行]** を選択します。
 
