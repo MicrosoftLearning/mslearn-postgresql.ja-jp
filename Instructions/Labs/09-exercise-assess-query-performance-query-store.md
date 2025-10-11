@@ -237,7 +237,7 @@ psql -h <servername> -p <port> -U <username> <dbname>
     サーバー名は、Azure portal の **[概要]** で、または bicep スクリプトの出力として確認できます。
 
     ```sql
-   psql -h <servername>.postgres.database.azure.com -p 5432 -U pgAdmin postgres
+   psql -h <servername>.postgres.database.azure.com -p 5432 -U pgAdmin adventureworks
     ```
 
     先ほどコピーした管理者アカウントのパスワードの入力を求めるメッセージが表示されます。
