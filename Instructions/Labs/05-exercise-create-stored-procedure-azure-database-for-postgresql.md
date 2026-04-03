@@ -2,6 +2,13 @@
 lab:
   title: Azure Database for PostgreSQL でストアド プロシージャを作成する
   module: Procedures and functions in PostgreSQL
+  description: この演習では、ストアド プロシージャをいくつか作成して実行します。
+  duration: 30 minutes
+  level: 400
+  islab: true
+  primarytopics:
+    - Azure
+    - Azure Database for PostgreSQL
 ---
 
 # Azure Database for PostgreSQL でストアド プロシージャを作成する

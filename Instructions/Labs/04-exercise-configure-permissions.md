@@ -2,6 +2,13 @@
 lab:
   title: Azure Database for PostgreSQL でアクセス許可を構成する
   module: Secure Azure Database for PostgreSQL
+  description: このラボの演習では、ロールベースのアクセス制御 (RBAC) ロールを割り当てて Azure Database for PostgreSQL リソースへのアクセスを制御し、PostgreSQL GRANTS を割り当ててデータベース操作へのアクセスを制御します。
+  duration: 45 minutes
+  level: 500
+  islab: true
+  primarytopics:
+    - Azure
+    - Azure Database for PostgreSQL
 ---
 
 # Azure Database for PostgreSQL でアクセス許可を構成する

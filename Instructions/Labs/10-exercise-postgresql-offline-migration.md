@@ -2,6 +2,13 @@
 lab:
   title: オフライン PostgreSQL データベース移行
   module: Migrate to Azure Database for PostgreSQL Flexible Server
+  description: この演習では、Azure Database for PostgreSQL フレキシブル サーバーを作成し、Azure Database for PostgreSQL フレキシブル サーバー内の移行機能を使用して、オンプレミスの PostgreSQL サーバーまたは Azure Database for PostgreSQL サーバーからオフライン データベースの移行を実行します。
+  duration: 140 minutes
+  level: 500
+  islab: true
+  primarytopics:
+    - Azure
+    - Azure Database for PostgreSQL
 ---
 
 # オフライン PostgreSQL データベース移行

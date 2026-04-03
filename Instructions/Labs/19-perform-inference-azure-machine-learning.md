@@ -2,6 +2,13 @@
 lab:
   title: Azure Machine Learning を使用して推論を実行する
   module: Use Azure Machine Learning Inferencing with Azure Database for PostgreSQL
+  description: この演習では、Azure Machine Learning の自動機械学習機能を使用して作成されたモデルをデプロイします。 そして、そのデプロイしたモデルを使用して、短期賃貸物件の夜間販売価格を見積もります。
+  duration: 98 minutes
+  level: 500
+  islab: true
+  primarytopics:
+    - Azure
+    - Azure Machine Learning
 ---
 
 # Azure Machine Learning を使用して推論を実行する

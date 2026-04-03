@@ -2,6 +2,13 @@
 lab:
   title: 論理デコードを使用してテーブルの変更を一覧表示する
   module: Understand write-ahead logging
+  description: この演習では、PostgreSQL にネイティブな論理レプリケーションを構成します。 パブリッシャーとサブスクライバーとして機能する 2 つのサーバーを作成します。 zoodb 内のデータは、それらの間でレプリケートされます。
+  duration: 45 minutes
+  level: 400
+  islab: true
+  primarytopics:
+    - Azure
+    - Azure Database for PostgreSQL
 ---
 
 # 論理デコードを使用してテーブルの変更を一覧表示する

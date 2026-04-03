@@ -2,6 +2,13 @@
 lab:
   title: システム カタログとビューに基づいてシステム パラメーターを構成し、メタデータを確認する
   module: Configure and manage Azure Database for PostgreSQL
+  description: この演習では、PostgreSQL のシステム パラメーターとメタデータの確認方法について学習しました。 また、Azure portal で PostgreSQL メタデータを表示し、システム カタログ テーブルでデータを表示する方法についても学習しました。 さらに、システム ビューを使用して複雑なメタデータ クエリを表示する方法も学習しました。
+  duration: 35 minutes
+  level: 400
+  islab: true
+  primarytopics:
+    - Azure
+    - Azure Portal
 ---
 
 # システム カタログとビューに基づいてシステム パラメーターを構成し、メタデータを確認する
