@@ -3,7 +3,7 @@ lab:
   title: Azure AI 翻訳を使用してテキストを翻訳する
   module: Translate Text using the Azure AI Translator and Azure Database for PostgreSQL
   description: この演習では、Azure Database for PostgreSQL フレキシブル サーバー データベースを介して Azure AI 翻訳サービスを使用して、英語のテキストをさまざまな言語に翻訳します。
-  duration: 35 minutes
+  duration: 92 minutes
   level: 400
   islab: true
   primarytopics:

@@ -3,7 +3,7 @@ lab:
   title: オンライン PostgreSQL データベース移行
   module: Migrate to Azure Database for PostgreSQL Flexible Server
   description: この演習では、オンライン移行アクティビティを実行できるように、ソース PostgreSQL サーバーと Azure Database for PostgreSQL フレキシブル サーバーの間で論理レプリケーションを構成します。
-  duration: 20 minutes
+  duration: 62 minutes
   level: 300
   islab: true
   primarytopics:

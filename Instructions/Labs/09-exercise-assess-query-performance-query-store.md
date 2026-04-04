@@ -3,7 +3,7 @@ lab:
   title: クエリ ストアを使用してクエリ パフォーマンスを評価する
   module: Tune queries in Azure Database for PostgreSQL
   description: この演習では、Azure Database for PostgreSQL のクエリ ストアを使用してパフォーマンス メトリックのクエリを実行する方法について学びます。
-  duration: 35 minutes
+  duration: 30 minutes
   level: 400
   islab: true
   primarytopics:
