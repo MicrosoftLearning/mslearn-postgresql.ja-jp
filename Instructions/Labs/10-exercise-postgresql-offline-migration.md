@@ -3,7 +3,7 @@ lab:
   title: オフライン PostgreSQL データベース移行
   module: Migrate to Azure Database for PostgreSQL Flexible Server
   description: この演習では、Azure Database for PostgreSQL フレキシブル サーバーを作成し、Azure Database for PostgreSQL フレキシブル サーバー内の移行機能を使用して、オンプレミスの PostgreSQL サーバーまたは Azure Database for PostgreSQL サーバーからオフライン データベースの移行を実行します。
-  duration: 140 minutes
+  duration: 45 minutes
   level: 500
   islab: true
   primarytopics:
@@ -21,8 +21,7 @@ lab:
 
 ### Azure からの接続を許可するように pg_hba.conf ファイルを編集する (外部 PostgreSQL サーバーから移行しない場合はスキップ)
 
-> [!NOTE]
-> このラボでは、移行のソースと移行先として使用する 2 つの Azure Database for PostgreSQL を作成します。 ただし、独自の環境を使用している場合、この演習を完了するには、データベース、適切なアクセス許可、ネットワーク アクセス権を備えた既存の PostgreSQL サーバーにアクセスする必要があります。
+> &#128221; このラボでは、移行のソースと移行先として使用する 2 つの Azure Database for PostgreSQL を作成します。 ただし、独自の環境を使用している場合、この演習を完了するには、データベース、適切なアクセス許可、ネットワーク アクセス権を備えた既存の PostgreSQL サーバーにアクセスする必要があります。
 > 
 > 独自の環境を使用する場合、この演習では、移行のソースとして使用するサーバーが Azure Database for PostgreSQL フレキシブル サーバーにアクセス可能であり、データベースに接続して移行できるような環境を構築しておく必要があります。 このためには、ソース サーバーがパブリック IP アドレスおよびポートを介してアクセスできる必要があります。 Azure リージョンの IP アドレスの一覧を「[Azure IP Ranges and Service Tags – Public Cloud](https://www.microsoft.com/en-gb/download/details.aspx?id=56519)」からダウンロードすることで、使用する Azure リージョンに基づいてファイアウォール規則で許可される IP アドレスの範囲を最小限に抑えることができます。 サーバーのファイアウォールを開いて、Azure Database for PostgreSQL フレキシブル サーバー内の移行機能によるソース PostgreSQL サーバー (既定で TCP ポート **5432**) へのアクセスを許可してください。
 >
@@ -129,11 +128,9 @@ SELECT pg_reload_conf();
     1. **[Azure 内の任意の Azure サービスにこのサーバーへのパブリック アクセスを許可する]** チェックボックスをオンにします。
     1. **[パブリック IP アドレスを使用したインターネット経由でのこのリソースへのパブリック アクセスを許可する]** チェック ボックスをオンにします。
 
-> [!NOTE]
-> 運用環境では、Azure Database for PostgreSQL サーバーにアクセスする必要があるオプション、ネットワーク、IP のみを選択する必要があります。 
+> &#128221; 運用環境では、Azure Database for PostgreSQL サーバーにアクセスする必要があるオプション、ネットワーク、IP のみを選択する必要があります。 
 
-> [!NOTE]
-> 前述のように、この Bicep スクリプトでは、ソースと移行先の 2 つの Azure Database for PostgreSQL サーバーが作成されます。  ***環境内のオンプレミス PostgreSQL サーバーをこのラボのソース サーバーとして使用している場合は、次のすべての手順のソース サーバー接続情報を、環境内のオンプレミス サーバーの接続情報に置き換えてください***。  必ず環境と Azure の両方で、必要なファイアウォール規則を有効にしてください。
+> &#128221; 前述のように、この Bicep スクリプトでは、ソースと移行先の 2 つの Azure Database for PostgreSQL サーバーが作成されます。  ***環境内のオンプレミス PostgreSQL サーバーをこのラボのソース サーバーとして使用している場合は、次のすべての手順のソース サーバー接続情報を、環境内のオンプレミス サーバーの接続情報に置き換えてください***。  必ず環境と Azure の両方で、必要なファイアウォール規則を有効にしてください。
     
 ### デプロイ エラーのトラブルシューティング
 
