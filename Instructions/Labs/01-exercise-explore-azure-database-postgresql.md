@@ -2,6 +2,13 @@
 lab:
   title: Azure Database for PostgreSQL について調べる
   module: Explore PostgreSQL architecture
+  description: この演習では、Azure Database for PostgreSQL フレキシブル サーバーを作成し、バックアップ保持期間を構成します。
+  duration: 148 minutes
+  level: 400
+  islab: true
+  primarytopics:
+    - Azure
+    - Azure Database for PostgreSQL
 ---
 
 # Azure Database for PostgreSQL について調べる

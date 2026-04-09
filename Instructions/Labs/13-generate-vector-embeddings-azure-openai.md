@@ -2,6 +2,12 @@
 lab:
   title: Azure OpenAI を使用してベクトル埋め込みを生成する
   module: Enable Semantic Search with Azure Database for PostgreSQL
+  description: 次のような結果が得られますが、ベクター列は 1536 列です。
+  duration: 92 minutes
+  level: 500
+  islab: true
+  primarytopics:
+    - Azure
 ---
 
 # Azure OpenAI を使用してベクトル埋め込みを生成する

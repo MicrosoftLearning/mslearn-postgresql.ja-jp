@@ -2,6 +2,10 @@
 lab:
   title: EXPLAIN ステートメントを実行する
   module: Understand PostgreSQL query processing
+  description: この演習では、EXPLAIN 関数と、これを使用して指定されたステートメントに対して PostgreSQL プランナーが生成する実行プランを表示する方法を確認します。
+  duration: 148 minutes
+  level: 400
+  islab: true
 ---
 
 # EXPLAIN ステートメントを実行する

@@ -29,14 +29,10 @@ param languageServiceName string = 'lang-learn-${resourceGroup().location}-${uni
 @description('Unique name for the Azure AI Translator service account.')
 param translatorServiceName string = 'trn-learn-${resourceGroup().location}-${uniqueString(resourceGroup().id)}'
 
-@description('Unique name for the Storage Account.')
-param storageAccountName string = 'st${uniqueString(resourceGroup().id)}'
+@description('Unique name for the Microsoft Foundry resource.')
+param aiFoundryName string = 'foundry-${uniqueString(resourceGroup().id)}'
 
-@description('Unique name for the AI Foundry Hub.')
-param aiHubName string = 'aihub-learn-${resourceGroup().location}-${uniqueString(resourceGroup().id)}'
 
-@description('Unique name for the AI Foundry Project.')
-param aiProjectName string = 'aiproj-learn-${resourceGroup().location}-${uniqueString(resourceGroup().id)}'
 
 @description('Restore the service instead of creating a new instance. This is useful if you previously soft-delted the service and want to restore it. If you are restoring a service, set this to true. Otherwise, leave this as false.')
 param restore bool = false
@@ -88,6 +84,7 @@ resource allowAllAzureServicesAndResourcesWithinAzureIps 'Microsoft.DBforPostgre
 resource allowAll 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2023-03-01-preview' = {
   name: 'AllowAll'
   parent: postgreSQLFlexibleServer
+  dependsOn: [allowAllAzureServicesAndResourcesWithinAzureIps]
   properties: {
     startIpAddress: '0.0.0.0'
     endIpAddress: '255.255.255.255'
@@ -98,6 +95,7 @@ resource allowAll 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2023-
 resource rentalsDatabase 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2023-03-01-preview' = {
   name: databaseName
   parent: postgreSQLFlexibleServer
+  dependsOn: [allowAll]
   properties: {
     charset: 'UTF8'
     collation: 'en_US.UTF8'
@@ -178,60 +176,41 @@ resource translatorService 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
   }
 }
 
-@description('Creates a Storage Account for AI Foundry Hub.')
-resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
-  name: storageAccountName
+@description('Creates a Microsoft Foundry resource (new-style, CognitiveServices-based).')
+resource aiFoundry 'Microsoft.CognitiveServices/accounts@2025-06-01' = {
+  name: aiFoundryName
   location: location
-  sku: {
-    name: 'Standard_LRS'
-  }
-  kind: 'StorageV2'
-  properties: {
-    accessTier: 'Hot'
-    allowBlobPublicAccess: false
-    minimumTlsVersion: 'TLS1_2'
-  }
-}
-
-@description('Creates an Azure AI Foundry Hub.')
-resource aiHub 'Microsoft.MachineLearningServices/workspaces@2024-04-01' = {
-  name: aiHubName
-  location: location
-  kind: 'Hub'
   identity: {
     type: 'SystemAssigned'
   }
   sku: {
-    name: 'Basic'
-    tier: 'Basic'
+    name: 'S0'
   }
+  kind: 'AIServices'
   properties: {
-    friendlyName: aiHubName
-    storageAccount: storageAccount.id
+    allowProjectManagement: true
+    customSubDomainName: aiFoundryName
+    disableLocalAuth: false
     publicNetworkAccess: 'Enabled'
   }
 }
 
-@description('Creates an Azure AI Foundry Project.')
-resource aiProject 'Microsoft.MachineLearningServices/workspaces@2024-04-01' = {
-  name: aiProjectName
-  location: location
-  kind: 'Project'
-  identity: {
-    type: 'SystemAssigned'
-  }
+
+
+@description('Deploys a gpt-5.1 model for the Foundry agent.')
+resource agentModelDeployment 'Microsoft.CognitiveServices/accounts/deployments@2025-06-01' = {
+  parent: aiFoundry
+  name: 'gpt-5.1'
   sku: {
-    name: 'Basic'
-    tier: 'Basic'
+    capacity: 1
+    name: 'GlobalStandard'
   }
   properties: {
-    friendlyName: aiProjectName
-    hubResourceId: aiHub.id
-    publicNetworkAccess: 'Enabled'
+    model: {
+      name: 'gpt-5.1'
+      format: 'OpenAI'
+    }
   }
-  dependsOn: [
-    aiHub
-  ]
 }
 
 output serverFqdn string = postgreSQLFlexibleServer.properties.fullyQualifiedDomainName
@@ -248,11 +227,7 @@ output languageServiceEndpoint string = languageService.properties.endpoint
 output translatorServiceName string = translatorService.name
 output translatorServiceEndpoint string = translatorService.properties.endpoint
 
-output storageAccountName string = storageAccount.name
-output storageAccountId string = storageAccount.id
+output aiFoundryName string = aiFoundry.name
+output aiFoundryEndpoint string = aiFoundry.properties.endpoint
 
-output aiHubName string = aiHub.name
-output aiHubId string = aiHub.id
 
-output aiProjectName string = aiProject.name
-output aiProjectId string = aiProject.id
