@@ -2,6 +2,13 @@
 lab:
   title: Azure AI 拡張機能について調べる
   module: Explore Generative AI with Azure Database for PostgreSQL
+  description: Margie's Travel のリード開発者として、あなたは、賃貸物件に関するインテリジェントなレコメンデーションを顧客に提供する AI 搭載アプリケーションの構築を任されています。 Azure Database for PostgreSQL の azureai 拡張機能の詳細と、それが生成 AI (GenAI) の機能をアプリに統合するのにどのように役立つかについて知りたいと考えています。 この演習では、azureai 拡張機能を Azure Database for PostgreSQL フレキシブル サーバー データベースにインストールし、Azure AI と ML サービスを統合する機能を調べることで、その機能性を確認します。
+  duration: 45 minutes
+  level: 500
+  islab: true
+  primarytopics:
+    - Azure
+    - Azure Database for PostgreSQL
 ---
 
 # Azure AI 拡張機能について調べる

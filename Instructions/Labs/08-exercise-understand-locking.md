@@ -2,6 +2,13 @@
 lab:
   title: ロックについて
   module: Understand concurrency in PostgreSQL
+  description: 次のコマンドでは、この演習で使用されるすべてのリソースを格納するリソース グループに使用する名前が割り当てられます。 対応する変数に割り当てられたリソース グループ名は rg-learn-work-with-postgresql-$REGION です。$REGION は前に指定した場所です。 ただし、この部分は好みに合わせたものや既にお持ちのものに応じて、他のリソース グループ名に変更できます。
+  duration: 35 minutes
+  level: 400
+  islab: true
+  primarytopics:
+    - Azure
+    - Azure Database for PostgreSQL
 ---
 
 # ロックについて
